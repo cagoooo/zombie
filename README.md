@@ -1,0 +1,89 @@
+# DEADZONE｜能量防線 v1.2.0
+
+🌐 **線上遊玩：[DEADZONE｜能量防線](https://cagoooo.github.io/zombie/)**
+
+繁體中文 3D 能量槍殭屍塔防遊戲，使用 Three.js＋Vite＋Blender。整合 Quaternius 殭屍、守衛與環境，以及 Kenney 科幻槍械和 Blender 自製 MK2 脈衝槍。
+
+本輪實作 **A＋B＋P1-04＋P1-09**：可走動人物、斜俯視跟隨、桌機／手機移動射擊、教學、畫質及波次續玩。敵人只攻核心。技術路線已選 G-A，Godot 保留提案。
+
+[進度表](進度表.md) · [未來功能候選](未來優化改良與可開發功能.md) · [RDQ 已確認規格](rdq/RDQ-spec-next-version-20260906.md)
+
+## 開始遊玩
+
+Windows 雙擊「啟動遊戲.cmd」，或執行：
+
+~~~powershell
+npm install
+npm run dev
+~~~
+
+開啟終端顯示的 Local HTTP 網址，預設 http://127.0.0.1:5173/ 。不要以 file:// 開啟原始 index.html；那個入口會顯示啟動指引。需支援 WebGL 2 的瀏覽器。首次套件安裝需網路，模型與貼圖已隨專案保存，字型失敗可使用系統字型。
+
+## 操作與玩法
+
+| 操作 | 桌機 | 手機 |
+|---|---|---|
+| 移動 | WASD／方向鍵 | 左搖桿 |
+| 奔跑 | 按住 Shift | 奔跑按鈕切換 |
+| 瞄準與連射 | 滑鼠瞄準、按住左鍵 | 右搖桿拖曳瞄準並開火，放開停止；拖動幅度控制瞄準距離 |
+| 換武器 | 1／2／3、武器卡 | 底部常駐三槍 |
+| 建造 | B／建造按鈕，選塔再點「＋」 | 建造抽屜選塔，收起後點「＋」 |
+| 全圖 | C／全圖按鈕 | 全圖按鈕；建造模式也會顯示全圖 |
+| 暫停 | P／空白鍵／暫停按鈕 | 暫停按鈕 |
+
+- 初始能源 300；三種塔可升至 Lv.3，出售返還實際投入的 70%，向下取整。人物站在基座旁時不能把塔建在自己身上。
+- 脈衝為快速單體攻擊，電漿為範圍傷害，冰霜為減速；射程分別為 26／23／20 世界單位。圓形／六角／菱形準星輔助辨識。
+- 射擊從角色附近發出；主要障礙與已建塔會阻擋玩家移動和射擊。草木與碎石是可通行裝飾。防禦塔沿用自動攻擊規則。
+- 三槍共用熱量，100% 過熱後須降至 22% 才能再次射擊；切槍不能繞過冷卻。
+- 每波結束有能源補給並修復核心 5%；第 5、10 波有巨型敵人，守住 10 波獲勝。殭屍不攻擊玩家。
+- 失焦自動暫停；可切 1×／2×。設定提供音量、減少動態、瞄準輔助與低中高畫質。
+- 首次有五步引導，可略過，亦可從設定重看。
+
+## 保存與續玩
+
+準備階段自動保存目前波次、核心、能源、擊退數、武器、人物位置、塔型及等級。重新開啟同一瀏覽器、同一網址來源時，可選「繼續防守」或「新戰局」。
+
+戰鬥中重整會回到該波開始前的部署，不是逐幀戰鬥存檔。勝敗後清除該戰局檢查點。存檔格式不相容或損毀會提示開新局；儲存不可用時會顯示失敗狀態。清除瀏覽器資料、無痕關閉、變更網域或連接埠，都可能讓原存檔不可用。沒有雲端同步或跨裝置戰局。
+
+## 開發與驗證
+
+~~~powershell
+npm test
+npm run build
+npm run preview
+# 另一個終端，使用生產預覽隔離開發 HMR：
+$env:GAME_URL='http://127.0.0.1:4173'
+node scripts/verify-browser.mjs
+node scripts/verify-full-session.mjs
+node scripts/verify-third-person.mjs
+node scripts/verify-ab-foundation.mjs
+node scripts/verify-quality-fallback.mjs
+~~~
+
+24 項單元測試；完整瀏覽器 10 波、勝敗重開；新增多指觸控、存檔恢復及模型故障測試。Edge headless 與觸控模擬報告在 artifacts，詳細結果見[驗證紀錄](驗證紀錄.md)。實體手機、Safari、長時間發熱及真人難度／聽感尚未驗收。
+
+dist 可供靜態部署；已接入 GitHub Pages 自動部署、manifest 與版本更新通知。完整離線下載尚未納入。Three.js 大於 500 kB 的建置提示仍在，建置可成功。
+
+## 專案結構
+
+| 路徑 | 用途 |
+|---|---|
+| src/game.js、world.js | 戰局、武器／塔、敵人、人物移動與共用碰撞 |
+| src/scene.js、assets.js | 場景、動畫、畫質、特效池、素材載入 |
+| src/controls.js、combat.css | 桌機／多指輸入、橫直向戰鬥介面 |
+| src/save.js、tutorial.js | 版本化檢查點與教學 |
+| src/main.js、timing.js、audio.js | UI、整合、固定步長與音效 |
+| public/models/ | 遊戲使用的 glTF／GLB／PNG |
+| assets-source/blender/ | Blender MK2 可編輯母檔 |
+| ASSET_SOURCES.md、asset-manifest.json | 素材來源、授權與雜湊 |
+| tests/、scripts/、artifacts/ | 自動驗證與報告截圖 |
+
+## Blender 素材開發
+
+MK2 已有 .blend、生成腳本與遊戲 GLB。角色採 Idle_Gun／Walk_Gun／Run_Gun；其他角色及殭屍需保留骨架和對應動畫名稱。Kenney 原始槍依賴 Textures/colormap.png，MK2 貼圖已內嵌。匯出後驗證縮放、朝向、槍口和動畫，再打包。
+
+詳見[Blender 素材開發流程](Blender素材開發流程.md)。完整 SKIN 選擇器、骨骼持握插槽規格與更多外觀仍列 P1-05 候選。使用者已授權開發時主動使用獨立瀏覽器重現、修正與回測 BUG。
+
+## v1.2.0 分享與版本更新
+
+favicon／OG、GitHub Pages、SW 更新提示與 chunk 一次性恢復、手機平板 RWD 及阿凱老師頁尾已加入。詳見 [部署與版本更新](部署與版本更新.md)。正式版本更新由 GitHub Actions 自動同步 APP／SW／version.json，玩家確認後重載；可以先完成當波。

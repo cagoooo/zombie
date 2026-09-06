@@ -1,0 +1,69 @@
+import { Game, TOWERS, PADS, WEAPONS } from './game.js';
+import { canStand } from './world.js';
+export const SAVE_KEY = 'deadzone-checkpoint-v1';
+export function checkpoint(game) {
+  if (game.phase !== 'ready') return null;
+  return {
+    version: 1,
+    map: 'outpost-1',
+    wave: game.wave,
+    health: game.health,
+    credits: game.credits,
+    kills: game.kills,
+    weapon: game.weapon,
+    player: { x: game.player.x, z: game.player.z, angle: game.player.angle },
+    towers: game.towers.map((t) => ({ pad: t.pad, type: t.type, level: t.level, spent: t.spent })),
+  };
+}
+export function restore(raw) {
+  const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  const integer = (v, min, max) => Number.isInteger(v) && v >= min && v <= max;
+  if (
+    !data ||
+    data.version !== 1 ||
+    data.map !== 'outpost-1' ||
+    !integer(data.wave, 0, 9) ||
+    !integer(data.health, 1, 100) ||
+    !integer(data.credits, 0, 100000) ||
+    !integer(data.kills, 0, 245) ||
+    !Object.hasOwn(WEAPONS, data.weapon) ||
+    !Array.isArray(data.towers) ||
+    data.towers.length > 8
+  )
+    throw Error('存檔版本或內容不相容');
+  const game = new Game(),
+    pads = new Set();
+  game.wave = data.wave;
+  game.health = data.health;
+  game.credits = data.credits;
+  game.kills = data.kills;
+  game.weapon = data.weapon;
+  for (const t of data.towers) {
+    if (
+      !t ||
+      !integer(t.pad, 0, 7) ||
+      pads.has(t.pad) ||
+      !Object.hasOwn(TOWERS, t.type) ||
+      !integer(t.level, 1, 3)
+    )
+      throw Error('防禦塔存檔損毀');
+    const cost = TOWERS[t.type].cost,
+      spent =
+        cost +
+        Array.from({ length: t.level - 1 }, (_, i) => Math.round(cost * 0.7 * (i + 1))).reduce(
+          (a, b) => a + b,
+          0,
+        );
+    if (t.spent !== spent) throw Error('防禦塔投入數值不符');
+    pads.add(t.pad);
+    game.towers.push({ ...t, id: ++game.id, cooldown: 0, x: PADS[t.pad][0], z: PADS[t.pad][1] });
+  }
+  if (
+    !data.player ||
+    !canStand(data.player.x, data.player.z, game.towers) ||
+    !Number.isFinite(data.player.angle)
+  )
+    throw Error('角色位置不合法');
+  Object.assign(game.player, { x: data.player.x, z: data.player.z, angle: data.player.angle });
+  return game;
+}

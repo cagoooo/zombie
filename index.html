@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="description" content="能量槍、殭屍浪潮與防禦塔。守住最後的能源核心。" />
+    <title>DEADZONE｜能量防線</title>
+    <script>
+      if (location.protocol === 'file:') document.documentElement.classList.add('local-file');
+    </script>
+    <style>
+      #local-file-help {
+        display: none;
+      }
+      .local-file body {
+        margin: 0;
+        background: #101713;
+        color: #edf2df;
+        font:
+          16px/1.8 system-ui,
+          sans-serif;
+      }
+      .local-file #app {
+        display: none;
+      }
+      .local-file #local-file-help {
+        display: block;
+        max-width: 580px;
+        margin: 12vh auto;
+        padding: 28px;
+      }
+      .local-file #local-file-help h1 {
+        font-size: 26px;
+      }
+      .local-file #local-file-help a {
+        display: inline-block;
+        padding: 10px 18px;
+        background: #d8f36a;
+        color: #101713;
+        border-radius: 5px;
+        font-weight: 700;
+      }
+      .local-file #local-file-help code {
+        color: #d8f36a;
+      }
+    </style>
+    <link rel="icon" href="./favicon.ico" sizes="any" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+  </head>
+  <body>
+    <main id="local-file-help">
+      <p>DEADZONE｜能量防線</p>
+      <h1>請從遊戲網址進入戰場</h1>
+      <p>目前直接開啟了 HTML 檔案，遊戲程式與樣式需要透過本機伺服器載入。</p>
+      <ol>
+        <li>回到專案資料夾，執行 <code>啟動遊戲.cmd</code>。</li>
+        <li>保留啟動視窗，使用它顯示的 Local 網址遊玩。</li>
+      </ol>
+      <a href="http://127.0.0.1:5173/">開啟本機遊戲 ↗</a>
+      <p>上方按鈕適用於伺服器已啟動在 5173 埠時；若啟動視窗顯示其他埠，請使用該網址。</p>
+    </main>
+    <div id="app">
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="能量防線首頁"
+          ><span class="brand-mark">ϟ</span>
+          <div>
+            <strong>DEADZONE<span>®</span></strong
+            ><small>能 量 防 線 / ENERGY DEFENSE</small>
+          </div></a
+        >
+        <div class="sector">
+          <span class="status-dot"></span>第 07 區域<span class="divider">/</span>最後的能源站
+        </div>
+        <div class="top-actions">
+          <button
+            id="sound"
+            class="icon-button"
+            title="開關音效"
+            aria-label="開關音效"
+            aria-pressed="false"
+          >
+            ♫</button
+          ><button
+            id="settings"
+            class="icon-button"
+            title="音量與操作設定"
+            aria-label="音量與操作設定"
+          >
+            ⚙</button
+          ><button id="help" class="icon-button" title="操作說明" aria-label="操作說明">?</button
+          ><button id="pause" class="outline-button">Ⅱ 暫停</button>
+        </div>
+      </header>
+      <main class="layout">
+        <section class="battlefield" aria-label="3D 戰場">
+          <canvas id="game" aria-label="WASD 移動，滑鼠瞄準射擊；B 開啟建造模式"></canvas>
+          <div class="vignette"></div>
+          <div class="field-heading">
+            <span class="eyebrow">OPERATION / LAST LIGHT</span>
+            <h1>守住最後一道光。</h1>
+            <p>殭屍正在逼近。讓核心持續運轉。</p>
+          </div>
+          <div class="map-coordinates">N ↗<span>35° 41′ N / 139° 42′ E</span></div>
+          <div class="wave-info">
+            <span class="live-mark"></span><span id="phase-label">準備階段</span
+            ><span class="wave-separator">|</span
+            ><span>波次 <b id="wave-label">01</b><small> / 10</small></span>
+          </div>
+          <div class="field-tag entry-tag">↘ 感染源</div>
+          <div id="toast" role="status" aria-live="polite"></div>
+          <div id="hit-confirm" aria-hidden="true"></div>
+          <div class="combat-tools">
+            <button id="build-mode" aria-pressed="false">建造 B</button
+            ><button id="overview" aria-pressed="false">全圖 C</button
+            ><button id="sprint" aria-pressed="false">奔跑</button>
+          </div>
+          <div id="compact-hud"></div>
+          <canvas
+            id="minimap"
+            width="176"
+            height="106"
+            aria-label="全域小地圖：青色玩家、紅色敵人、綠色防禦塔"
+          ></canvas>
+          <div id="tutorial">
+            <span id="tutorial-text"></span><button id="tutorial-skip">略過</button>
+          </div>
+          <div class="touch-controls">
+            <div class="joystick" id="move-stick" role="group" aria-label="移動搖桿">
+              <i></i><span>移動</span>
+            </div>
+            <div class="joystick" id="aim-stick" role="group" aria-label="瞄準射擊搖桿">
+              <i></i><span>瞄準／射擊</span>
+            </div>
+          </div>
+          <div class="weapon-dock">
+            <button data-weapon="pulse" class="selected">1 ⌁ 脈衝</button
+            ><button data-weapon="plasma">2 ◎ 電漿</button
+            ><button data-weapon="cryo">3 ❄ 冰霜</button><span id="compact-heat"></span>
+          </div>
+          <section id="checkpoint-panel" class="overlay" hidden>
+            <div class="dialog">
+              <span class="eyebrow">CHECKPOINT</span>
+              <h2>繼續守住這道防線</h2>
+              <p id="checkpoint-summary"></p>
+              <button id="continue-game" class="primary-button">繼續上次部署 ↗</button
+              ><button id="new-game" class="outline-button">開始新戰局</button>
+            </div>
+          </section>
+          <section
+            id="loading-panel"
+            class="loading-panel"
+            aria-label="戰場素材載入"
+            aria-live="polite"
+          >
+            <div>
+              <strong id="loading-label">正在準備戰場</strong><b id="loading-percent">0%</b>
+            </div>
+            <progress id="loading-progress" max="100" value="0"></progress>
+            <div id="asset-failures"></div>
+            <div class="loading-actions">
+              <button id="retry-assets" hidden>重試全部失敗項目</button
+              ><button id="continue-fallback" hidden>使用備援繼續</button>
+            </div>
+          </section>
+          <div class="wave-action">
+            <span id="wave-hint">先部署防禦塔，再迎接第一波敵人</span
+            ><button id="next-wave" class="primary-button">開始第一波 <span>↗</span></button>
+          </div>
+          <div class="field-bottom">
+            <span><i></i>戰場連線正常</span>
+            <div>
+              <button id="speed" title="切換遊戲速度">1× 速度</button
+              ><span class="desktop-hint">WASD 移動 · 按住射擊</span>
+            </div>
+          </div>
+          <div id="overlay" class="overlay" hidden>
+            <div class="dialog">
+              <span id="dialog-eyebrow" class="eyebrow">SYSTEM / PAUSED</span>
+              <h2 id="dialog-title">戰場已暫停</h2>
+              <p id="dialog-body"></p>
+              <button id="resume" class="primary-button">繼續防守 ↗</button>
+            </div>
+          </div>
+          <div id="settings-overlay" class="overlay" hidden>
+            <section class="dialog settings-dialog" aria-labelledby="settings-title">
+              <span class="eyebrow">FIELD SETTINGS</span>
+              <h2 id="settings-title">調整你的戰場</h2>
+              <label
+                >畫質
+                <select id="quality">
+                  <option value="low">低：節能</option>
+                  <option value="medium">中：平衡</option>
+                  <option value="high">高：細緻陰影</option>
+                </select></label
+              >
+              <p id="save-status">準備階段自動保存；戰鬥中重整回到最近部署。</p>
+              <button id="replay-tutorial" class="outline-button">重看新手訓練</button>
+              <label
+                >音效音量
+                <input id="effects-volume" type="range" min="0" max="100" value="45" /><output
+                  id="effects-value"
+                  >45%</output
+                ></label
+              >
+              <label
+                >環境音量
+                <input id="ambient-volume" type="range" min="0" max="100" value="20" /><output
+                  id="ambient-value"
+                  >20%</output
+                ></label
+              >
+              <label class="setting-toggle"
+                ><input id="reduce-motion" type="checkbox" />減少鏡頭晃動與閃光</label
+              >
+              <label class="setting-toggle"
+                ><input id="aim-assist" type="checkbox" checked />輔助瞄準（手機建議開啟）</label
+              >
+              <p>音效需由右上角音符按鈕開啟。所有重要警告也會顯示文字。</p>
+              <button id="close-settings" class="primary-button">儲存並返回戰場 ↗</button>
+            </section>
+          </div>
+        </section>
+        <aside class="command-panel">
+          <div class="panel-heading"><span>指揮中心</span><small>COMMAND CENTER</small></div>
+          <section class="core-status">
+            <div class="section-label">
+              ◈ 核心完整度 <strong id="health-value">100<span>%</span></strong>
+            </div>
+            <div class="meter"><i id="health-bar"></i></div>
+            <p id="core-state">能量核心穩定運作中</p>
+          </section>
+          <div class="resource-row">
+            <div>
+              <span>可用能源</span
+              ><strong class="energy-number"><i>ϟ</i> <b id="credits">300</b></strong>
+            </div>
+            <div><span>擊退殭屍</span><strong id="kills">000</strong></div>
+          </div>
+          <section class="build-section">
+            <div class="section-title">
+              <h2>部署防禦</h2>
+              <span>BUILD / 01</span>
+            </div>
+            <p class="muted">選擇塔型，再點擊戰場上的「＋」。</p>
+            <button class="tower-card selected" data-tower="pulse">
+              <span class="tower-symbol">⌁</span
+              ><span><strong>脈衝哨塔</strong><small>穩定連射 · 單體傷害</small></span
+              ><b>ϟ 100</b>
+            </button>
+            <button class="tower-card" data-tower="cryo">
+              <span class="tower-symbol cryo">❄</span
+              ><span><strong>冰凍稜鏡</strong><small>低溫射線 · 減速控場</small></span
+              ><b>ϟ 125</b>
+            </button>
+            <button class="tower-card" data-tower="plasma">
+              <span class="tower-symbol plasma">◎</span
+              ><span><strong>電漿迫擊塔</strong><small>範圍爆破 · 群體傷害</small></span
+              ><b>ϟ 175</b>
+            </button>
+          </section>
+          <section id="tower-detail" class="tower-detail">
+            <div class="detail-label">戰術提示 <span>↗</span></div>
+            <p>彎道是最好的伏擊點。<br />搭配冰凍與電漿，延長火力覆蓋。</p>
+          </section>
+          <section class="mission">
+            <span class="eyebrow">YOUR OBJECTIVE</span>
+            <h3>撐過 10 波，守住核心。</h3>
+            <div><span>目前敵軍</span><b id="enemies">0</b></div>
+            <div><span>本波尚未出現</span><b id="remaining">0</b></div>
+            <div><span>歷史最佳擊退</span><b id="best">0</b></div>
+          </section>
+          <div class="panel-bottom">
+            <span class="status-dot"></span>防禦系統已就緒 <span>V.1.0</span>
+          </div>
+        </aside>
+      </main>
+      <section class="arsenal" aria-label="武器切換">
+        <div class="arsenal-heading">
+          <span class="eyebrow">YOUR LOADOUT</span>
+          <h2>選擇你的火力</h2>
+          <span>鍵盤 <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> 切換</span>
+        </div>
+        <button class="weapon selected" data-weapon="pulse">
+          <span class="weapon-key">01</span
+          ><svg viewBox="0 0 180 70" aria-hidden="true">
+            <path
+              class="gun-body"
+              d="M26 27h83v-9h24v9h31v18h-53l-13 8H69l-7-9H44L30 60H17l12-26z"
+            />
+            <path class="gun-dark" d="M55 44h21l-6 23H58zM93 22h15v32H93z" />
+            <path class="gun-light" d="M45 29h42v9H45zM137 30h25v10h-25z" />
+            <path class="gun-line" d="M47 19h43M117 15h14" /></svg
+          ><span class="weapon-copy"
+            ><strong>脈衝步槍</strong><small>高速連射 <i>●</i> 平衡型</small></span
+          ><span class="equipped">已裝備</span>
+        </button>
+        <button class="weapon" data-weapon="plasma">
+          <span class="weapon-key">02</span
+          ><svg viewBox="0 0 180 70" aria-hidden="true">
+            <path
+              class="gun-body"
+              d="M17 26h28l10-11h55l12 9h41v28h-48l-9 6H63l-14-9H31l-8 13H12l9-28z"
+            />
+            <path class="gun-dark" d="M68 49h22l-6 19H71zM116 22h12v35h-12z" />
+            <circle class="gun-light" cx="83" cy="34" r="13" />
+            <path class="gun-light" d="M143 29h20v17h-20z" />
+            <path class="gun-line" d="M58 10h43" /></svg
+          ><span class="weapon-copy"
+            ><strong>電漿重砲</strong><small>範圍爆破 <i>●</i> 重火力</small></span
+          ><span class="equipped">已裝備</span>
+        </button>
+        <button class="weapon" data-weapon="cryo">
+          <span class="weapon-key">03</span
+          ><svg viewBox="0 0 180 70" aria-hidden="true">
+            <path
+              class="gun-body"
+              d="M17 29h29l6-8h55l9 7h49v12h-45l-15 11H61l-8-7H34L23 60H11l10-23z"
+            />
+            <path class="gun-dark" d="M65 46h22l-6 22H68zM108 22h12v28h-12z" />
+            <path
+              class="gun-light"
+              d="M53 27h10v14H53zM71 27h10v14H71zM89 27h10v14H89zM128 29h35v6h-35z"
+            />
+            <path class="gun-line" d="M120 19h41M129 47h33" /></svg
+          ><span class="weapon-copy"
+            ><strong>冰霜射線</strong><small>持續減速 <i>●</i> 控場型</small></span
+          ><span class="equipped">已裝備</span>
+        </button>
+        <div class="heat-status">
+          <div><span>武器熱量</span><b id="heat-label">0%</b></div>
+          <div class="meter"><i id="heat-bar"></i></div>
+          <small id="heat-note">能量充足 · 隨時開火</small>
+        </div>
+      </section>
+      <footer class="site-credit">
+        <span class="credit-rights">© <span id="copyright-year">2026</span> <span class="credit-title">DEADZONE 能量防線</span></span>
+        <span
+          >Made with <span class="site-credit__heart" aria-label="愛心">❤️</span> by
+          <a
+            href="https://www.smes.tyc.edu.tw/modules/tadnews/page.php?ncsn=11&amp;nsn=16#a5"
+            target="_blank"
+            rel="noopener noreferrer"
+            >阿凱老師</a
+          ></span
+        >
+        <span id="app-version">v1.2.0</span>
+      </footer>
+    </div>
+    <section id="update-card" role="status" aria-live="polite" aria-label="遊戲版本更新" hidden>
+      <strong>能量防線有新版本</strong>
+      <p id="update-message"></p>
+      <small>可以先完成這一波。重新整理會回到最近的波次準備存檔。</small>
+      <div class="update-actions">
+        <button id="apply-update">重新整理載入最新版</button
+        ><button id="dismiss-update">稍後</button>
+      </div>
+    </section>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

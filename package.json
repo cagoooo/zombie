@@ -1,0 +1,24 @@
+{
+  "name": "deadzone-energy-defense",
+  "version": "1.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "node --test tests/*.test.js",
+    "icons": "node scripts/generate-icons.mjs",
+    "check:release": "node scripts/check-release.mjs"
+  },
+  "dependencies": {
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@napi-rs/canvas": "^1.0.8",
+    "@playwright/test": "^1.63.0",
+    "png-to-ico": "^3.0.2",
+    "prettier": "^3.9.6",
+    "vite": "^8.2.2"
+  }
+}

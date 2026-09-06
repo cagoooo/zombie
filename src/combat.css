@@ -1,0 +1,404 @@
+.combat-tools {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  gap: 6px;
+  z-index: 4;
+}
+.combat-tools button,
+.weapon-dock button {
+  border: 1px solid var(--line);
+  background: #172118ee;
+  padding: 9px 12px;
+  border-radius: 4px;
+  min-height: 40px;
+  font-size: 12px;
+}
+.combat-tools button[aria-pressed='true'],
+.weapon-dock .selected {
+  background: var(--brand);
+  color: var(--bg);
+}
+.map-coordinates,
+.field-tag,
+.field-heading p {
+  display: none;
+}
+.field-heading {
+  top: 18px !important;
+  left: 20px !important;
+}
+.field-heading h1 {
+  font-size: 23px !important;
+  margin-top: 8px !important;
+}
+.wave-info {
+  top: 101px !important;
+  left: 20px !important;
+}
+#minimap {
+  position: absolute;
+  right: 16px;
+  top: 68px;
+  width: 132px;
+  height: 80px;
+  border: 1px solid #647253;
+  background: #101a13dd;
+  pointer-events: none;
+}
+#tutorial {
+  position: absolute;
+  left: 20px;
+  top: 142px;
+  max-width: min(410px, calc(100% - 175px));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #172118e8;
+  border-left: 2px solid var(--brand);
+  padding: 9px 11px;
+  font-size: 11px;
+  z-index: 3;
+}
+#tutorial button {
+  border: 0;
+  background: transparent;
+  white-space: nowrap;
+  color: var(--brand);
+  min-height: 32px;
+}
+.touch-controls,
+.weapon-dock,
+#compact-hud {
+  display: none;
+}
+#checkpoint-panel {
+  z-index: 18;
+}
+#checkpoint-panel .outline-button {
+  display: block;
+  margin: 15px auto 0;
+  padding: 10px;
+}
+#settings-overlay {
+  z-index: 20;
+}
+.settings-dialog {
+  max-height: 95%;
+  overflow: auto;
+}
+.settings-dialog select {
+  background: var(--raised);
+  color: var(--ink);
+  padding: 8px;
+  border: 1px solid var(--line);
+}
+.field-bottom {
+  pointer-events: none;
+}
+.field-bottom button {
+  pointer-events: auto;
+}
+.vignette {
+  pointer-events: none;
+}
+.core-danger .battlefield {
+  box-shadow: inset 0 0 40px #ff38264d;
+}
+.core-danger #compact-hud {
+  color: #ffa58b;
+}
+#sprint {
+  display: none;
+}
+.weapon.selected {
+  border-color: var(--brand);
+}
+@media (max-width: 1000px), (pointer: coarse) {
+  body {
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  #app {
+    height: 100dvh;
+    width: 100%;
+  }
+  .topbar {
+    height: 58px !important;
+    padding: 0 10px !important;
+  }
+  .brand-mark {
+    width: 30px !important;
+    height: 34px !important;
+  }
+  .brand strong {
+    font-size: 20px !important;
+  }
+  .brand small,
+  .sector {
+    display: none !important;
+  }
+  .top-actions {
+    gap: 5px !important;
+  }
+  .top-actions button {
+    min-height: 38px !important;
+    padding: 7px !important;
+  }
+  .layout {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: calc(100dvh - 58px) !important;
+    min-height: 0 !important;
+  }
+  .battlefield {
+    height: 100% !important;
+    min-height: 0 !important;
+    border: 0;
+    border-radius: 0;
+  }
+  .arsenal {
+    display: none !important;
+  }
+  .field-heading,
+  .field-bottom,
+  .map-coordinates {
+    display: none !important;
+  }
+  .wave-info {
+    top: 10px !important;
+    left: 10px !important;
+    font-size: 11px !important;
+    padding: 8px !important;
+  }
+  .combat-tools {
+    top: 50px;
+    left: 10px;
+    right: auto;
+    gap: 5px;
+  }
+  .combat-tools button {
+    padding: 7px 9px;
+    min-height: 38px;
+  }
+  #sprint {
+    display: block;
+  }
+  #compact-hud {
+    display: block;
+    position: absolute;
+    right: 10px;
+    top: 18px;
+    font: 12px var(--mono);
+    color: var(--brand);
+  }
+  #minimap {
+    top: 98px;
+    right: 10px;
+    width: 105px;
+    height: 64px;
+  }
+  #tutorial {
+    left: 10px;
+    top: 98px;
+    max-width: calc(100% - 130px);
+    font-size: 10px;
+    padding: 6px 8px;
+    line-height: 1.5;
+  }
+  #tutorial button {
+    padding: 3px;
+  }
+  .weapon-dock {
+    display: flex;
+    position: absolute;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    left: 10px;
+    right: 10px;
+    gap: 5px;
+    z-index: 4;
+    align-items: center;
+  }
+  .weapon-dock button {
+    flex: 1;
+    padding: 9px 5px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .weapon-dock span {
+    width: 42px;
+    font: 11px var(--mono);
+    color: var(--brand);
+  }
+  .touch-controls {
+    display: flex;
+    position: absolute;
+    bottom: 74px;
+    left: 18px;
+    right: 18px;
+    justify-content: space-between;
+    pointer-events: none;
+    z-index: 4;
+  }
+  .joystick {
+    width: 104px;
+    height: 104px;
+    border: 1px solid #a6b88d77;
+    border-radius: 50%;
+    background: #13211788;
+    pointer-events: auto;
+    touch-action: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    user-select: none;
+  }
+  .joystick i {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #bace9b66;
+    border: 1px solid #d8f36a88;
+    pointer-events: none;
+  }
+  .joystick span {
+    position: absolute;
+    bottom: -20px;
+    font-size: 10px;
+    pointer-events: none;
+    color: #dce4d0;
+  }
+  .joystick:active {
+    border-color: var(--brand);
+  }
+  .wave-action {
+    bottom: 202px !important;
+    max-width: 92%;
+    z-index: 3;
+  }
+  .wave-action .primary-button {
+    padding: 9px 20px;
+  }
+  .wave-action > span {
+    font-size: 10px !important;
+  }
+  .command-panel {
+    display: none;
+    position: absolute;
+    left: 10px;
+    top: 146px;
+    bottom: 68px;
+    width: min(295px, calc(100% - 20px));
+    height: auto !important;
+    padding: 14px !important;
+    overflow: auto !important;
+    background: #141e16f5;
+    border: 1px solid var(--line);
+    z-index: 8;
+  }
+  .build-open .command-panel {
+    display: block;
+  }
+  .command-panel .mission,
+  .command-panel .core-status,
+  .command-panel .resource-row,
+  .command-panel .panel-bottom {
+    display: none;
+  }
+  .command-panel .section-title {
+    margin-top: 8px;
+  }
+  .command-panel .tower-card {
+    padding: 10px;
+  }
+  .command-panel .muted {
+    font-size: 10px;
+  }
+  .build-open .touch-controls {
+    visibility: hidden;
+  }
+  #toast {
+    top: 46% !important;
+    z-index: 12;
+    max-width: 90%;
+  }
+  .dialog {
+    max-height: 94%;
+    overflow: auto;
+  }
+  .overlay {
+    padding: 10px;
+  }
+  .settings-dialog label {
+    margin: 12px 0;
+  }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .topbar {
+    height: 44px !important;
+  }
+  .layout {
+    height: calc(100dvh - 44px) !important;
+  }
+  .wave-info {
+    top: 5px !important;
+  }
+  .combat-tools {
+    top: 5px;
+    left: 190px;
+  }
+  #compact-hud {
+    top: 16px;
+    right: 10px;
+  }
+  #minimap {
+    top: 57px;
+    width: 99px;
+    height: 60px;
+  }
+  #tutorial {
+    top: 51px;
+    max-width: calc(100% - 155px);
+    width: 380px;
+  }
+  .touch-controls {
+    bottom: 65px;
+    left: 18px;
+    right: 18px;
+  }
+  .joystick {
+    width: 78px;
+    height: 78px;
+  }
+  .weapon-dock {
+    left: 130px;
+    right: 130px;
+    bottom: 10px;
+  }
+  .wave-action {
+    bottom: 64px !important;
+  }
+  .wave-action > span {
+    display: none;
+  }
+  .command-panel {
+    top: 49px;
+    bottom: 55px;
+    width: 300px;
+  }
+  .field-heading {
+    display: none !important;
+  }
+  .settings-dialog {
+    padding: 14px !important;
+  }
+  .settings-dialog h2 {
+    font-size: 20px;
+  }
+  .settings-dialog label {
+    margin: 8px 0;
+  }
+}

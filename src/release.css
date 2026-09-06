@@ -1,0 +1,167 @@
+.site-credit {
+  min-height: 56px;
+  padding: 12px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 5px 14px;
+  border-top: 1px solid var(--line);
+  color: #b7c1ad;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+.site-credit a {
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.site-credit__heart {
+  letter-spacing: normal;
+  text-transform: none;
+}
+#app-version {
+  font-family: var(--mono);
+}
+#update-card {
+  position: fixed;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  right: 16px;
+  z-index: 100;
+  width: min(420px, calc(100vw - 28px));
+  padding: 18px;
+  color: #eff2e5;
+  background: #172118;
+  border: 1px solid #d8f36a;
+  box-shadow: 0 12px 48px #0009;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+#update-card strong {
+  font-size: 18px;
+}
+#update-card p {
+  margin: 8px 0;
+}
+#update-card small {
+  display: block;
+  color: #c3cdb8;
+}
+.update-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+}
+.update-actions button {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--brand);
+  border-radius: 4px;
+  background: transparent;
+}
+#apply-update {
+  background: var(--brand);
+  color: #101713;
+  font-weight: 700;
+}
+@media (max-width: 1000px), (pointer: coarse) {
+  #app {
+    display: flex;
+    flex-direction: column;
+  }
+  .topbar {
+    flex-shrink: 0;
+    gap: 8px;
+    padding-left: max(10px, env(safe-area-inset-left)) !important;
+    padding-right: max(10px, env(safe-area-inset-right)) !important;
+  }
+  .layout {
+    flex: 1;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  .site-credit {
+    flex-shrink: 0;
+    min-height: 48px;
+    padding: 4px max(10px, env(safe-area-inset-right)) max(4px, env(safe-area-inset-bottom))
+      max(10px, env(safe-area-inset-left));
+    gap: 0 8px;
+    font-size: 11px;
+  }
+  .site-credit .credit-title {
+    display: none;
+  }
+  .site-credit a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+  }
+  .top-actions button,
+  .combat-tools button,
+  .weapon-dock button {
+    min-height: 44px !important;
+  }
+  .joystick span,
+  #tutorial {
+    font-size: 12px;
+  }
+  #tutorial {
+    max-width: calc(100% - 135px);
+  }
+  .weapon-dock {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  .wave-action .primary-button {
+    min-height: 44px;
+  }
+  #update-card {
+    right: 14px;
+    bottom: calc(70px + env(safe-area-inset-bottom));
+  }
+}
+@media (max-width: 360px) {
+  .brand strong {
+    font-size: 17px !important;
+  }
+  .brand {
+    gap: 5px;
+  }
+  .top-actions {
+    gap: 2px !important;
+  }
+  .top-actions button {
+    padding: 5px !important;
+  }
+  .wave-info {
+    font-size: 10px !important;
+    gap: 5px !important;
+  }
+  #compact-hud {
+    font-size: 11px;
+    right: 8px;
+  }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .topbar { height:48px!important; }
+  .site-credit {
+    min-height: 30px;
+    font-size: 10px;
+  }
+  .site-credit a {
+    min-height: 22px;
+  }
+  #tutorial {
+    max-width: calc(100% - 160px);
+    font-size: 11px;
+    top: 54px;
+  }
+  .combat-tools {
+    left: 180px;
+  }
+  .touch-controls {
+    bottom: 65px;
+  }
+}

@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const root=process.argv[2]||'dist';
+const html=fs.readFileSync(root+'/index.html','utf8'),sw=fs.readFileSync(root+'/sw.js','utf8');
+const meta=JSON.parse(fs.readFileSync(root+'/version.json'));
+const site=JSON.parse(fs.readFileSync('site.config.json'));
+assert.ok(html.includes(meta.id)&&sw.includes(meta.id));
+assert.equal(meta.version,JSON.parse(fs.readFileSync('package.json')).version);
+assert.ok(!sw.includes('__SW_META__')&&!sw.includes('__SW_ASSETS__'));
+assert.ok(html.includes('property="og:url" content="'+site.url+'"'));
+assert.ok(html.includes('property="og:image" content="'+new URL(site.image,site.url).href+'?v='));
+assert.ok(html.includes('阿凱老師')&&html.includes('nsn=16#a5'));
+for(const p of ['favicon.svg','favicon.ico','apple-touch-icon.png','manifest.webmanifest',site.image])assert.ok(fs.statSync(root+'/'+p).size>0);
+for(const m of html.matchAll(/(?:src|href)="(\.\/assets\/[^"?]+)"/g))assert.ok(fs.existsSync(root+'/'+m[1]));
+const assets=JSON.parse(sw.match(/const PRECACHE = (\[[^;]*\]);/)[1]);
+assert.ok(assets.length>=2);assert.ok(!assets.some(p=>p.endsWith('.html')));
+for(const asset of assets)assert.ok(fs.existsSync(root+'/'+asset));
+console.log('發布檢查通過：版本一致、靜態 OG、圖示、頁尾、雜湊資源與 SW 清單正確。');

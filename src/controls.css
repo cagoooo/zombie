@@ -1,0 +1,99 @@
+.loading-panel {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  width: min(390px, 90%);
+  padding: 20px;
+  background: #172118f5;
+  border: 1px solid var(--brand);
+  z-index: 14;
+  box-shadow: 0 15px 50px #0007;
+}
+.loading-panel > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+.loading-panel progress {
+  width: 100%;
+  height: 6px;
+  margin: 16px 0;
+  accent-color: var(--brand);
+}
+.loading-panel b {
+  color: var(--brand);
+  font-family: var(--mono);
+}
+.loading-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.loading-panel button {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  background: var(--raised);
+  font-size: 11px;
+}
+.loading-actions > button:last-child {
+  background: var(--brand);
+  color: var(--bg);
+}
+#asset-failures {
+  max-height: 130px;
+  overflow-y: auto;
+  font-size: 11px;
+  color: var(--muted);
+}
+.asset-failure {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.settings-dialog label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0;
+  font-size: 12px;
+}
+.settings-dialog input[type='range'] {
+  min-width: 50px;
+  flex: 1;
+  accent-color: var(--brand);
+}
+.settings-dialog output {
+  font: 11px var(--mono);
+  min-width: 30px;
+}
+.settings-dialog input[type='checkbox'] {
+  accent-color: var(--brand);
+}
+.settings-dialog p {
+  font-size: 11px;
+}
+.settings-dialog {
+  width: min(430px, 92%);
+}
+#hit-confirm {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  pointer-events: none;
+  color: var(--brand);
+  font-weight: 700;
+  opacity: 0;
+  transform: translateX(-50%);
+  text-shadow: 0 1px 5px #000;
+}
+#hit-confirm.active {
+  opacity: 1;
+}
+.reduced-motion * {
+  scroll-behavior: auto !important;
+  transition: none !important;
+  animation: none !important;
+}

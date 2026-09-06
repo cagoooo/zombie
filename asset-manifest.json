@@ -1,0 +1,114 @@
+[
+  {
+    "path": "public/models/Barrel.gltf",
+    "bytes": 56129,
+    "sha256": "c05a1b4e43c4779e3d0311d02cb5eb735d6ede9c629d41b25e46f73f0b36b096",
+    "author": "Quaternius",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "public/models/blaster-a.glb",
+    "bytes": 44992,
+    "sha256": "d6d6fe0ec5baf21d7717449220799d45b95d2d663ace7b22612b255dc1a8b308",
+    "author": "Kenney",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "public/models/blaster-a.png",
+    "bytes": 1771,
+    "sha256": "f2c5429ac788196f6b1f4f1b576efb09a45aa095af8bbdfe1e76fd2d875651f5",
+    "author": "Kenney",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "public/models/blaster-j.glb",
+    "bytes": 50632,
+    "sha256": "d0d077820b8b840e0f41947dcb4d05960d94ede7431ae3c5e137847771a2f6a1",
+    "author": "Kenney",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "public/models/blaster-j.png",
+    "bytes": 1958,
+    "sha256": "e16fe6b0bbfd313cdfae100049f200c08cf40337f08a4b22b6f0f8bab8bde65a",
+    "author": "Kenney",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "public/models/blaster-o.glb",
+    "bytes": 59396,
+    "sha256": "52da12866542e6d9948af535e8070f5cc924783ffefa32222762ee17e2bb7e98",
+    "author": "Kenney",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "public/models/blaster-o.png",
+    "bytes": 1762,
+    "sha256": "0eb081f0f3fef14a94a4a7f35697c73b0cf049e6735e02e7a56f5eff137c5346",
+    "author": "Kenney",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "public/models/Characters_Sam_SingleWeapon.gltf",
+    "bytes": 1815561,
+    "sha256": "b4743962fd45a0236134fb841943d5e096c983b01301a5c0727b984c14d9e4e7",
+    "author": "Quaternius",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "public/models/Container_Green.gltf",
+    "bytes": 129355,
+    "sha256": "c137efd239dd9f109e0041b6a4415b9582dd05f43cbca8486b9e5bcfd2f38f90",
+    "author": "Quaternius",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "public/models/pulse-mk2.glb",
+    "bytes": 48432,
+    "sha256": "5a35aff220d103122c8be948401c8edd321ddb036d52090d506ef61d886e426c",
+    "author": "Kenney; DEADZONE energy detail additions",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "public/models/TrafficBarrier_1.gltf",
+    "bytes": 55234,
+    "sha256": "3594493dc95e87cf9fac68d6b56f9e269f44d01cdb31bded10b34fa300beb2de",
+    "author": "Quaternius",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "public/models/WaterTower.gltf",
+    "bytes": 81166,
+    "sha256": "8ace4fa799796c942433659d0c31046d4854e2ce6da6cbc7ba20b358fc386a12",
+    "author": "Quaternius",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "public/models/Zombie_Basic.gltf",
+    "bytes": 1703033,
+    "sha256": "c6eab64ef87f89cbd6862b59964b20024ca7e329d3d44f72c76fced6c24861c8",
+    "author": "Quaternius",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "public/models/Zombie_Chubby.gltf",
+    "bytes": 1671276,
+    "sha256": "7c65bae6f0c5f7754ca177a7de7658fc0e4c8de7c8aff33a872d7ffff57a423c",
+    "author": "Quaternius",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "public/models/Zombie_Ribcage.gltf",
+    "bytes": 443873,
+    "sha256": "3b9ee3e504e34e6b1421076e9c51bc5d6a647350900eb6aa214d0a62491866f3",
+    "author": "Quaternius",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "public/models/Textures/colormap.png",
+    "bytes": 10223,
+    "sha256": "4d0867c3c3c8c539106f91fbc0987d0e1b7d2811362d1daed593169c7d3b0fdc",
+    "author": "Kenney",
+    "license": "CC0-1.0"
+  }
+]
