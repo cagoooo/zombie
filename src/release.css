@@ -165,3 +165,7 @@
     bottom: 65px;
   }
 }
+/* Music controls remain reachable inside the scrollable settings panel. */
+.music-credit a { color: var(--brand); text-underline-offset: 3px; }
+#music-status { min-height: 2.8em; line-height: 1.5; }
+#enable-music, #retry-music { min-height: 44px; }

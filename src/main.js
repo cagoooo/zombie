@@ -66,7 +66,24 @@ function toast(message) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => $('toast').classList.remove('show'), 2700);
 }
-const sound = new GameAudio();
+const musicLabels = {
+  off: '音樂尚未開啟；開始第一波會播放，也可按下方按鈕開啟。',
+  loading: 'BGM 載入中…', playing: '正在播放：Urgent · SRG774',
+  paused: 'BGM 已暫停；返回戰場後繼續播放。', silent: 'BGM 音量為 0%。',
+  blocked: '瀏覽器尚未允許播放，請按「重試 BGM」。',
+  error: 'BGM 載入失敗，請確認網路後按「重試 BGM」。',
+};
+const sound = new GameAudio((state) => {
+  $('music-status').textContent = musicLabels[state];
+  $('retry-music').hidden = !['error', 'blocked'].includes(state);
+  if (['error', 'blocked'].includes(state)) toast(musicLabels[state]);
+});
+let soundPreference = null, soundBusy = false;
+try { soundPreference = JSON.parse(localStorage.getItem('deadzone-sound-enabled')); } catch {}
+if (soundPreference === false) {
+  musicLabels.off = '音樂與音效已靜音；可按下方按鈕開啟。';
+  $('music-status').textContent = musicLabels.off;
+}
 function audio(type) {
   sound.play(type);
 }
@@ -171,12 +188,26 @@ $('pause').onclick = () => {
   if (['won', 'lost'].includes(game.phase)) return;
   game.paused ? resume() : modal('pause');
 };
-$('sound').onclick = async () => {
-  muted = !(await sound.enable(muted));
+async function setSound(value) {
+  if (soundBusy) return;
+  soundBusy = true;
+  muted = !(await sound.enable(value));
+  soundPreference = !muted;
+  try { localStorage.setItem('deadzone-sound-enabled', JSON.stringify(!muted)); } catch {}
   $('sound').setAttribute('aria-pressed', !muted);
   $('sound').textContent = muted ? '♫' : '♪';
-  toast(muted ? '音效已關閉' : '音效已開啟');
-  audio('pulse');
+  $('sound').title = $('sound').ariaLabel = muted ? '開啟音樂與音效' : '關閉音樂與音效';
+  $('enable-music').textContent = muted ? '開啟音樂與音效' : '關閉音樂與音效';
+  toast(muted ? '音樂與音效已關閉' : '音樂與音效已開啟');
+  soundBusy = false;
+}
+$('sound').onclick = () => setSound(muted);
+$('enable-music').onclick = () => setSound(muted);
+$('retry-music').onclick = async () => {
+  try { await sound.context?.resume(); }
+  catch { sound.music.setState('blocked'); return; }
+  // Settings pause the battle; retry queues a fresh attempt on return.
+  sound.music.sync({ retry: true });
 };
 $('speed').onclick = () => {
   speed = speed === 1 ? 2 : 1;
@@ -204,6 +235,7 @@ document.querySelectorAll('[data-tower]').forEach((b) => {
 $('next-wave').onclick = () => {
   persistReady();
   if (game.startWave()) {
+    if (muted && soundPreference !== false) setSound(true);
     input.clear();
     setBuild(false);
     tutorial.mark('wave');
@@ -260,7 +292,8 @@ window.addEventListener('keydown', (e) => {
       $('close-settings').click();
     }
     if (e.code === 'Tab') {
-      const controls = [...$('settings-overlay').querySelectorAll('input, select, button')];
+      const controls = [...$('settings-overlay').querySelectorAll('input, select, button, a[href]')]
+        .filter((element) => !element.hidden);
       const next =
         (controls.indexOf(document.activeElement) + (e.shiftKey ? -1 : 1) + controls.length) %
         controls.length;
@@ -406,6 +439,7 @@ requestAnimationFrame(frame);
 updateUI();
 const settings = {
   effects: 45,
+  music: 35,
   ambient: 20,
   reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
   aimAssist: true,
@@ -416,6 +450,7 @@ try {
 } catch {}
 function applySettings() {
   settings.effects = Math.max(0, Math.min(100, Number(settings.effects) || 0));
+  settings.music = Math.max(0, Math.min(100, Number(settings.music) || 0));
   settings.ambient = Math.max(0, Math.min(100, Number(settings.ambient) || 0));
   if (!['low', 'medium', 'high'].includes(settings.quality)) settings.quality = 'medium';
   if (view.quality !== settings.quality || !view.qualityApplied) {
@@ -423,6 +458,7 @@ function applySettings() {
     view.qualityApplied = true;
   }
   sound.volume = settings.effects / 100;
+  sound.music.volume = settings.music / 100;
   sound.ambience = settings.ambient / 100;
   sound.syncAmbient();
   view.reducedMotion = settings.reducedMotion;
@@ -434,6 +470,7 @@ function applySettings() {
 }
 for (const [id, key, output] of [
   ['effects-volume', 'effects', 'effects-value'],
+  ['music-volume', 'music', 'music-value'],
   ['ambient-volume', 'ambient', 'ambient-value'],
 ]) {
   $(id).value = settings[key];
@@ -564,6 +601,7 @@ window.deadzone = {
     assetsLoaded: Object.keys(view.models),
     corpses: view.corpses.length,
     settings: { ...settings },
+    audio: sound.music.snapshot(),
     assetErrors: view.assetErrors || [],
     render: view.renderer.info.render,
   }),

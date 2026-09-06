@@ -8,7 +8,7 @@ const main=await fetch(url);assert.equal(main.status,200);const html=await main.
 assert.ok(html.includes('property="og:title"')&&html.includes('property="og:image"'));
 const og=html.match(/property="og:image" content="([^"]+)"/)[1].replaceAll('&amp;','&');
 assert.ok(og.startsWith(url+'og-deadzone-v1.png?v='));
-const paths=['','favicon.svg','favicon.ico','apple-touch-icon.png','manifest.webmanifest','sw.js','version.json','models/pulse-mk2.glb'];
+const paths=['','favicon.svg','favicon.ico','apple-touch-icon.png','manifest.webmanifest','sw.js','version.json','models/pulse-mk2.glb','audio/urgent-srg774-loop-v1.mp3','audio/LICENSE.txt'];
 const manifest=await (await fetch(url+'manifest.webmanifest')).json();paths.push(...manifest.icons.map(i=>i.src));
 for(const name of [...new Set(paths)]) {
   const r=await fetch(url+name);assert.equal(r.status,200,name);const bytes=Buffer.from(await r.arrayBuffer());assert.ok(bytes.length>0);resources.push({path:name||'index',status:r.status,type:r.headers.get('content-type'),bytes:bytes.length});
@@ -17,7 +17,8 @@ const image=await fetch(og,{headers:{'User-Agent':'facebookexternalhit/1.1'}});a
 const imageBytes=Buffer.from(await image.arrayBuffer()),local=await fs.readFile('public/og-deadzone-v1.png');
 assert.equal(crypto.createHash('sha256').update(imageBytes).digest('hex'),crypto.createHash('sha256').update(local).digest('hex'));
 assert.equal(imageBytes.readUInt32BE(16),1734);assert.equal(imageBytes.readUInt32BE(20),907);
-const version=await (await fetch(url+'version.json')).json();assert.equal(version.version,'1.2.0');assert.ok(html.includes(version.id));
+const pkg=JSON.parse(await fs.readFile('package.json','utf8'));
+const version=await (await fetch(url+'version.json')).json();assert.equal(version.version,pkg.version);assert.ok(html.includes(version.id));
 const browser=await chromium.launch({channel:'msedge',headless:true});
 let desktop;
 try {
@@ -31,6 +32,9 @@ try {
   await desktop.locator('#tutorial-skip').click();await desktop.locator('#build-mode').click();await desktop.waitForTimeout(700);
   const pad=await desktop.evaluate(()=>deadzone.project(-15,0,.4));await desktop.mouse.click(pad.x,pad.y);assert.equal(await desktop.evaluate(()=>deadzone.snapshot().towers.length),1);
   await desktop.locator('#next-wave').click();await desktop.waitForFunction(()=>deadzone.snapshot().enemies.length>0);await desktop.keyboard.press('2');assert.equal(await desktop.evaluate(()=>deadzone.snapshot().weapon),'plasma');
+  await desktop.waitForFunction(()=>deadzone.snapshot().audio.currentTime > .3);
+  const bgm=await desktop.evaluate(()=>deadzone.snapshot().audio);
+  assert.equal(bgm.state,'playing');assert.equal(bgm.source,url+'audio/urgent-srg774-loop-v1.mp3');
   await desktop.locator('#pause').click();assert.equal(await desktop.evaluate(()=>deadzone.snapshot().paused),true);await desktop.locator('#resume').click();
   await desktop.screenshot({path:'artifacts/live-desktop.png',fullPage:true});
   const sizes=[];
@@ -42,6 +46,6 @@ try {
     await p.screenshot({path:`artifacts/live-${width}x${height}.png`});sizes.push({width,height,combat:true,footer:true});await p.close();
   }
   assert.deepEqual(errors,[]);
-  const report={date:'2026-09-06',url,version,resources,og:{url:og,width:1734,height:907,bytes:imageBytes.length,sha256:crypto.createHash('sha256').update(imageBytes).digest('hex'),publicFetch:true},scope,models:11,previews:3,desktopCombat:true,sizes,errors,physicalDevicesTested:false,socialPostTested:false};
+  const report={date:'2026-09-06',url,version,resources,bgm,og:{url:og,width:1734,height:907,bytes:imageBytes.length,sha256:crypto.createHash('sha256').update(imageBytes).digest('hex'),publicFetch:true},scope,models:11,previews:3,desktopCombat:true,sizes,errors,physicalDevicesTested:false,socialPostTested:false};
   await fs.writeFile('artifacts/live-release-report.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
 }finally{await browser.close();}

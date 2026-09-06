@@ -39,6 +39,7 @@ try {
     await page.locator('#continue-game').click();
   assert.deepEqual(await page.evaluate(() => deadzone.snapshot().settings), {
     effects: 27,
+    music: 35,
     ambient: 13,
     reducedMotion: true,
     aimAssist: false,

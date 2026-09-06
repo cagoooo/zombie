@@ -2,6 +2,14 @@
 
 查核日期：2026-09-06。以下分開記錄「實際使用的素材」與「玩法參考」，避免把參考作品誤稱為本專案程式來源。
 
+## 實際使用：背景音樂 Urgent
+
+- 作者 SRG774；[作品與作者授權宣告](https://opengameart.org/content/dark-sci-fi-audio-pack)，[CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)。並非將 Pixabay 的授權誤記為 CC0。
+- 原檔：https://opengameart.org/sites/default/files/urgent_0.mp3 ，2,275,786 bytes；SHA256 `4aba1f1a01f328e0337a3764eb89d8d69e13ea2a86929840c787f4d736565b82`。
+- 遊戲檔：`public/audio/urgent-srg774-loop-v1.mp3`，911,194 bytes，約 56.89 秒、44.1 kHz 立體聲 MP3 128 kbps；SHA256 `21a00c69a47dce820001cbd0b19707a27c4f1bbb6ebd1f3c5e45cbd925e3691d`。
+- 調整：FFmpeg `loudnorm=I=-19:TP=-2:LRA=9,afade=t=in:d=0.03,afade=t=out:st=56.82:d=0.05`。原檔 mean -44.6／max -24.4 dB；輸出 mean -20.4／max -2.4 dB（volumedetect），遊戲再以獨立 gain 預設 35% 淡入。
+- 原生 loop；邊緣淡化減少突變，不宣稱專業無縫重混。授權與修改記錄另存 `public/audio/LICENSE.txt`，設定介面可點回作者作品頁。
+
 ## 實際使用：Quaternius Zombie Apocalypse Kit
 
 - 作者：Quaternius。

@@ -1,0 +1,13 @@
+Urgent — SRG774
+Source: https://opengameart.org/content/dark-sci-fi-audio-pack
+Original: https://opengameart.org/sites/default/files/urgent_0.mp3
+License declared by author: CC0 1.0 Universal
+License: https://creativecommons.org/publicdomain/zero/1.0/
+Verified/downloaded: 2026-09-06
+
+Game copy: urgent-srg774-loop-v1.mp3
+Changes: loudness normalization (-19 LUFS target, -2 dBTP ceiling, LRA 9),
+30 ms fade-in, 50 ms fade-out from 56.82 seconds,
+44.1 kHz stereo MP3 at 128 kbps. No endorsement implied.
+Original SHA256: 4aba1f1a01f328e0337a3764eb89d8d69e13ea2a86929840c787f4d736565b82
+Game-copy SHA256: 21a00c69a47dce820001cbd0b19707a27c4f1bbb6ebd1f3c5e45cbd925e3691d

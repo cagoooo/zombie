@@ -78,8 +78,8 @@
           <button
             id="sound"
             class="icon-button"
-            title="開關音效"
-            aria-label="開關音效"
+            title="開啟音樂與音效"
+            aria-label="開啟音樂與音效"
             aria-pressed="false"
           >
             ♫</button
@@ -198,6 +198,14 @@
               >
               <p id="save-status">準備階段自動保存；戰鬥中重整回到最近部署。</p>
               <button id="replay-tutorial" class="outline-button">重看新手訓練</button>
+              <label>BGM 音量
+                <input id="music-volume" type="range" min="0" max="100" value="35" />
+                <output id="music-value">35%</output>
+              </label>
+              <p id="music-status" role="status">音樂尚未開啟；開始第一波會播放，也可按下方按鈕開啟。</p>
+              <button id="enable-music" class="outline-button">開啟音樂與音效</button>
+              <button id="retry-music" class="outline-button" hidden>重試 BGM</button>
+              <p class="music-credit">配樂：<a href="https://opengameart.org/content/dark-sci-fi-audio-pack" target="_blank" rel="noopener noreferrer">Urgent · SRG774</a>（CC0；音量調整、循環邊緣淡化）</p>
               <label
                 >音效音量
                 <input id="effects-volume" type="range" min="0" max="100" value="45" /><output
@@ -218,7 +226,7 @@
               <label class="setting-toggle"
                 ><input id="aim-assist" type="checkbox" checked />輔助瞄準（手機建議開啟）</label
               >
-              <p>音效需由右上角音符按鈕開啟。所有重要警告也會顯示文字。</p>
+              <p>右上角音符可一起開關音樂與音效。暫停或切到其他分頁會停止 BGM；音量與靜音偏好會記住。所有重要警告也會顯示文字。</p>
               <button id="close-settings" class="primary-button">儲存並返回戰場 ↗</button>
             </section>
           </div>
@@ -346,7 +354,7 @@
             >阿凱老師</a
           ></span
         >
-        <span id="app-version">v1.2.0</span>
+        <span id="app-version">v1.3.0</span>
       </footer>
     </div>
     <section id="update-card" role="status" aria-live="polite" aria-label="遊戲版本更新" hidden>

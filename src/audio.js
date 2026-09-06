@@ -1,10 +1,23 @@
+import { BackgroundMusic } from './music.js';
+
 export class GameAudio {
-  constructor() {
+  constructor(onMusicChange) {
     this.enabled = false;
     this.volume = 0.45;
     this.ambience = 0.2;
     this.context = null;
     this.paused = false;
+    const track = new Audio(new URL('audio/urgent-srg774-loop-v1.mp3', document.baseURI).href);
+    track.id = 'bgm';
+    track.hidden = true;
+    document.body.append(track);
+    this.music = new BackgroundMusic(track, onMusicChange);
+    this.music.hidden = document.hidden;
+    document.addEventListener('visibilitychange', () => {
+      this.music.hidden = document.hidden;
+      if (!document.hidden && this.enabled && !this.paused) this.resumeContext();
+      this.syncAmbient();
+    });
   }
 
   async enable(value) {
@@ -12,7 +25,11 @@ export class GameAudio {
     if (value) {
       try {
         this.context ??= new (window.AudioContext || window.webkitAudioContext)();
-        await this.context.resume();
+        this.music.attach(this.context);
+        this.music.enabled = true;
+        const resuming = this.context.resume();
+        this.music.sync({ retry: Boolean(this.music.failure) });
+        await resuming;
         if (!this.ambientGain) {
           this.ambientGain = this.context.createGain();
           this.ambientGain.connect(this.context.destination);
@@ -32,9 +49,12 @@ export class GameAudio {
   }
 
   syncAmbient() {
+    this.music.enabled = this.enabled;
+    this.music.paused = this.paused;
+    this.music.sync();
     if (!this.context || !this.ambientGain) return;
     this.ambientGain.gain.setTargetAtTime(
-      this.enabled && !this.paused ? this.ambience * 0.016 : 0,
+      this.enabled && !this.paused && !document.hidden ? this.ambience * 0.016 : 0,
       this.context.currentTime,
       0.08,
     );
@@ -42,7 +62,12 @@ export class GameAudio {
 
   setPaused(paused) {
     this.paused = paused;
+    if (!paused && this.enabled) this.resumeContext();
     this.syncAmbient();
+  }
+
+  resumeContext() {
+    this.context?.resume().catch(() => this.music.setState('blocked'));
   }
 
   tone(frequency, end, duration, type = 'sine', gain = 0.045, delay = 0) {

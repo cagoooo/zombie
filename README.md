@@ -1,4 +1,4 @@
-# DEADZONE｜能量防線 v1.2.0
+# DEADZONE｜能量防線 v1.3.0
 
 🌐 **線上遊玩：[DEADZONE｜能量防線](https://cagoooo.github.io/zombie/)**
 
@@ -7,6 +7,10 @@
 本輪實作 **A＋B＋P1-04＋P1-09**：可走動人物、斜俯視跟隨、桌機／手機移動射擊、教學、畫質及波次續玩。敵人只攻核心。技術路線已選 G-A，Godot 保留提案。
 
 [進度表](進度表.md) · [未來功能候選](未來優化改良與可開發功能.md) · [RDQ 已確認規格](rdq/RDQ-spec-next-version-20260906.md)
+
+v1.3.0 補上實際科幻 BGM〈Urgent〉：首次開始一波啟用，記住手動靜音，設定可獨立調整音樂／音效／環境聲。暫停與切換分頁停止播放、返回戰場續播；音檔載入失敗會提示重試。音樂由本站提供，約 0.91 MB，不依賴外部音樂網站串流。完整離線音樂下載尚未納入。
+
+[方案 C 開發規劃](方案C開發規劃.md)與[RDQ 草案](rdq/RDQ-spec-c-skins-20260906.md)已建立；外觀介面與新 SKIN 尚未實作。
 
 ## 開始遊玩
 
@@ -60,7 +64,7 @@ node scripts/verify-ab-foundation.mjs
 node scripts/verify-quality-fallback.mjs
 ~~~
 
-25 項單元測試；完整瀏覽器 10 波、勝敗重開；新增多指觸控、存檔恢復及模型故障測試。Edge headless 與觸控模擬報告在 artifacts，詳細結果見[驗證紀錄](驗證紀錄.md)。實體手機、Safari、長時間發熱及真人難度／聽感尚未驗收。
+29 項單元測試；完整瀏覽器 10 波、勝敗重開；另有多指觸控、存檔恢復、模型故障及 BGM 播放測試（`node scripts/verify-bgm.mjs`）。Edge headless 與觸控模擬報告在 artifacts，詳細結果見[驗證紀錄](驗證紀錄.md)。實體手機、Safari、長時間發熱及真人難度／聽感尚未驗收。
 
 dist 可供靜態部署；已接入 GitHub Pages 自動部署、manifest 與版本更新通知。完整離線下載尚未納入。Three.js 大於 500 kB 的建置提示仍在，建置可成功。
 
