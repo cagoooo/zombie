@@ -168,6 +168,7 @@
           <div class="wave-action">
             <span id="wave-hint">先部署防禦塔，再迎接第一波敵人</span
             ><button id="next-wave" class="primary-button">開始第一波 <span>↗</span></button>
+            <button id="open-cosmetics">裝備外觀</button>
           </div>
           <div class="field-bottom">
             <span><i></i>戰場連線正常</span>
@@ -354,7 +355,7 @@
             >阿凱老師</a
           ></span
         >
-        <span id="app-version">v1.3.0</span>
+        <span id="app-version">v1.4.0</span>
       </footer>
     </div>
     <section id="update-card" role="status" aria-live="polite" aria-label="遊戲版本更新" hidden>
@@ -364,6 +365,19 @@
       <div class="update-actions">
         <button id="apply-update">重新整理載入最新版</button
         ><button id="dismiss-update">稍後</button>
+      </div>
+    </section>
+    <section id="cosmetics-overlay" hidden>
+      <div class="cosmetic-dialog" role="dialog" aria-modal="true" aria-labelledby="cosmetics-title">
+        <header class="cosmetic-header"><div><small>ARMORY / COSMETICS</small><h2 id="cosmetics-title">裝備外觀</h2></div><button id="close-cosmetics" aria-label="取消並關閉外觀">取消 ✕</button></header>
+        <div class="cosmetic-content">
+          <nav class="skin-targets" aria-label="選擇裝備"><button data-skin-target="guard">守衛</button><button data-skin-target="pulse">脈衝</button><button data-skin-target="plasma">電漿</button><button data-skin-target="cryo">冰霜</button></nav>
+          <div class="cosmetic-columns">
+            <div><div class="cosmetic-preview-stage"><img id="cosmetic-preview" alt="裝備 3D 預覽" hidden /></div><button id="rotate-cosmetic" disabled>旋轉預覽 ↻</button></div>
+            <div><h3 id="cosmetic-name"></h3><div id="skin-choices"></div><p id="cosmetic-status" role="status"></p><button id="retry-cosmetic" hidden>重試下載</button><p><a id="cosmetic-source" target="_blank" rel="noopener noreferrer">素材來源</a></p></div>
+          </div>
+        </div>
+        <footer class="cosmetic-actions"><button id="reset-cosmetics">全部恢復原版</button><button id="apply-cosmetics" class="primary-button" disabled>套用並返回戰場 ↗</button></footer>
       </div>
     </section>
     <script type="module" src="/src/main.js"></script>

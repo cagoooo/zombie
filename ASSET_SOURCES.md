@@ -55,7 +55,14 @@
 - `pulse-mk2.glb`：以保留的 Kenney `blaster-a.glb` 在 Blender 加入能源細節與 Muzzle 定位點，貼圖內嵌。原作 CC0，新增幾何細節亦以 CC0 提供。母檔 `assets-source/blender/pulse-mk2.blend`，腳本 `scripts/blender-build-pulse.py`。
 - 共 11 個載入模型；磁碟保留原檔及縮圖共 16 個資源檔、6,174,793 bytes；雜湊以 manifest 為準。
 
-## v1.2.0 網站識別与分享插畫
+## v1.2.0 網站識別與分享插畫
 
 - favicon：專案自繪護盾與閃電，產生腳本 scripts/generate-icons.mjs。
 - OG：AI imagegen 生成的宣傳插畫，public/og-deadzone-v1.png，1734×907；非遊戲截圖，沒有額外下載第三方照片。圖片直接隨專案保存。
+
+## v1.4.0 極地偵巡外觀
+
+- 守衛衍生自同一 Quaternius CC0 素材；三把槍衍生自 Kenney Blaster Kit CC0（脈衝沿用本專案 MK2）。新增配色、材質與定位點亦以 CC0 提供，保留原版來源檔。
+- 四份 GLB 位於 `public/models/skins/`，合計 1,189,008 bytes；母檔位於 `assets-source/blender/skins/`。批次 Blender 腳本建立灰白裝甲、石墨結構與武器識別色，守衛保留皮膚及原骨架動畫；電漿槍以 Blender MCP 追加橘色發光修整並匯出。
+- 八項可選外觀（含原版）的詳細授權、尺寸、貼圖、面數與 SHA256 由 `src/skin-catalog.json` 記錄；下載／生成流程摘要同步於 `asset-manifest.json`。
+- 社群開發工具 [ahujasid/blender-mcp](https://github.com/ahujasid/blender-mcp) 為 MIT，安裝在使用者工具目錄，沒有把外掛原始碼或 Python 環境打包進網站；它不是本專案素材的來源授權。

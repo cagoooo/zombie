@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
 try {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 980 } }),
+  const page = await browser.newPage({ viewport: { width: 1440, height: 980 }, serviceWorkers: 'block' }),
     runtimeErrors = [];
   page.on('pageerror', (e) => runtimeErrors.push(e.message));
   const blocked = '**/models/Textures/colormap.png';
@@ -53,8 +53,17 @@ try {
   await page.route(blocked, (r) => r.abort());
   await page.reload();
   await page.locator('#continue-fallback').click();
+  await page.waitForSelector('body[data-ready="true"]');
   if (await page.locator('#continue-game').isVisible())
     await page.locator('#continue-game').click();
+  if (await page.locator('#tutorial-skip').isVisible()) await page.locator('#tutorial-skip').click();
+  await page.locator('#open-cosmetics').click();
+  await page.locator('[data-skin-target="plasma"]').click();
+  await page.waitForFunction(()=>!document.querySelector('#apply-cosmetics').disabled);
+  assert.match(await page.locator('#cosmetic-status').textContent(),/備援造型/);
+  await page.locator('#reset-cosmetics').click();
+  await page.waitForFunction(()=>!document.querySelector('#apply-cosmetics').disabled);
+  await page.locator('#apply-cosmetics').click();
   await page.locator('.arsenal [data-weapon="plasma"]').click();
   await page.locator('#next-wave').click();
   await page.waitForFunction(() => deadzone.snapshot().enemies.length > 0);
@@ -68,6 +77,7 @@ try {
       '內嵌貼圖的 Blender MK2 保持正常',
       '逐項重試與全部重試後恢復三張預覽',
       '備援造型可切槍開局',
+      '原模型缺檔時外觀介面可恢復並套用備援造型',
       '音量與減少動態、瞄準輔助設定重載後保留',
       '設定關閉恢復原本暫停狀態',
     ],

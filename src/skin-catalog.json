@@ -1,0 +1,304 @@
+[
+  {
+    "id": "guard-original",
+    "target": "guard",
+    "label": "守衛",
+    "name": "能源守衛",
+    "variant": "original",
+    "asset": "Characters_Sam_SingleWeapon",
+    "file": "models/Characters_Sam_SingleWeapon.gltf",
+    "bytes": 1815561,
+    "sha256": "b4743962fd45a0236134fb841943d5e096c983b01301a5c0727b984c14d9e4e7",
+    "author": "Quaternius",
+    "license": "CC0-1.0",
+    "source": "https://quaternius.com/packs/zombieapocalypsekit.html",
+    "height": 1.9,
+    "length": null,
+    "up": "+Y",
+    "forward": "+Z",
+    "grip": "Middle1.L",
+    "muzzle": null,
+    "animations": [
+      "Idle_Gun",
+      "Walk_Gun",
+      "Run_Gun"
+    ],
+    "regions": [
+      "source materials"
+    ],
+    "triangles": 10292,
+    "textures": [
+      {
+        "width": 512,
+        "height": 512,
+        "bytes": 6008
+      }
+    ],
+    "preview": "runtime-shared-renderer",
+    "version": 1,
+    "blend": null
+  },
+  {
+    "id": "guard-polar",
+    "target": "guard",
+    "label": "守衛",
+    "name": "極地偵巡",
+    "variant": "polar",
+    "asset": null,
+    "file": "models/skins/guard-polar-v1.glb",
+    "bytes": 1066408,
+    "sha256": "7a6bdc5382d8ff394b59a9b1c6ca02eda09a3efcd7c97b882551d7c4a049f2c2",
+    "author": "Quaternius",
+    "license": "CC0-1.0",
+    "source": "https://quaternius.com/packs/zombieapocalypsekit.html",
+    "height": 1.9,
+    "length": null,
+    "up": "+Y",
+    "forward": "+Z",
+    "grip": "Middle1.L",
+    "muzzle": null,
+    "animations": [
+      "Idle_Gun",
+      "Walk_Gun",
+      "Run_Gun"
+    ],
+    "regions": [
+      "Polar_Armor",
+      "Polar_Graphite",
+      "Atlas"
+    ],
+    "triangles": 10292,
+    "textures": [
+      {
+        "width": 512,
+        "height": 512,
+        "bytes": 6008
+      }
+    ],
+    "preview": "runtime-shared-renderer",
+    "version": 1,
+    "blend": "assets-source/blender/skins/guard-polar.blend"
+  },
+  {
+    "id": "pulse-original",
+    "target": "pulse",
+    "label": "脈衝步槍",
+    "name": "能源守衛",
+    "variant": "original",
+    "asset": "blaster-a",
+    "file": "models/pulse-mk2.glb",
+    "bytes": 48432,
+    "sha256": "5a35aff220d103122c8be948401c8edd321ddb036d52090d506ef61d886e426c",
+    "author": "Kenney / DEADZONE",
+    "license": "CC0-1.0",
+    "source": "https://kenney.nl/assets/blaster-kit",
+    "height": null,
+    "length": 2.3,
+    "up": "+Y",
+    "forward": "+Z",
+    "grip": [
+      0,
+      0,
+      0
+    ],
+    "muzzle": "Muzzle",
+    "animations": [],
+    "regions": [
+      "source materials"
+    ],
+    "triangles": 542,
+    "textures": [
+      {
+        "width": 512,
+        "height": 512,
+        "bytes": 10223
+      }
+    ],
+    "preview": "runtime-shared-renderer",
+    "version": 1,
+    "blend": null
+  },
+  {
+    "id": "pulse-polar",
+    "target": "pulse",
+    "label": "脈衝步槍",
+    "name": "極地偵巡",
+    "variant": "polar",
+    "asset": null,
+    "file": "models/skins/pulse-polar-v1.glb",
+    "bytes": 38712,
+    "sha256": "0471991763bfdf5c5d18fdc0379f013ace4d2a19104c0563535a12dab0b56827",
+    "author": "Kenney / DEADZONE",
+    "license": "CC0-1.0",
+    "source": "https://kenney.nl/assets/blaster-kit",
+    "height": null,
+    "length": 2.3,
+    "up": "+Y",
+    "forward": "+Z",
+    "grip": [
+      0,
+      0,
+      0
+    ],
+    "muzzle": "Muzzle",
+    "animations": [],
+    "regions": [
+      "Polar_Armor",
+      "Polar_Graphite",
+      "Polar_Energy"
+    ],
+    "triangles": 542,
+    "textures": [],
+    "preview": "runtime-shared-renderer",
+    "version": 1,
+    "blend": "assets-source/blender/skins/pulse-polar.blend"
+  },
+  {
+    "id": "plasma-original",
+    "target": "plasma",
+    "label": "電漿重砲",
+    "name": "能源守衛",
+    "variant": "original",
+    "asset": "blaster-j",
+    "file": "models/blaster-j.glb",
+    "bytes": 50632,
+    "sha256": "d0d077820b8b840e0f41947dcb4d05960d94ede7431ae3c5e137847771a2f6a1",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "source": "https://kenney.nl/assets/blaster-kit",
+    "height": null,
+    "length": 2.3,
+    "up": "+Y",
+    "forward": "+Z",
+    "grip": [
+      0,
+      0,
+      0
+    ],
+    "muzzle": "Muzzle",
+    "animations": [],
+    "regions": [
+      "source materials"
+    ],
+    "triangles": 548,
+    "textures": [
+      {
+        "width": 512,
+        "height": 512,
+        "bytes": 10223
+      }
+    ],
+    "preview": "runtime-shared-renderer",
+    "version": 1,
+    "blend": null
+  },
+  {
+    "id": "plasma-polar",
+    "target": "plasma",
+    "label": "電漿重砲",
+    "name": "極地偵巡",
+    "variant": "polar",
+    "asset": null,
+    "file": "models/skins/plasma-polar-v1.glb",
+    "bytes": 37704,
+    "sha256": "d015b95de059a705102ebc008d74bfd7c138f400d3f9e99ba54edd544ca46522",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "source": "https://kenney.nl/assets/blaster-kit",
+    "height": null,
+    "length": 2.3,
+    "up": "+Y",
+    "forward": "+Z",
+    "grip": [
+      0,
+      0,
+      0
+    ],
+    "muzzle": "Muzzle",
+    "animations": [],
+    "regions": [
+      "Polar_Armor",
+      "Polar_Graphite",
+      "Polar_Energy"
+    ],
+    "triangles": 548,
+    "textures": [],
+    "preview": "runtime-shared-renderer",
+    "version": 1,
+    "blend": "assets-source/blender/skins/plasma-polar.blend"
+  },
+  {
+    "id": "cryo-original",
+    "target": "cryo",
+    "label": "冰霜射線",
+    "name": "能源守衛",
+    "variant": "original",
+    "asset": "blaster-o",
+    "file": "models/blaster-o.glb",
+    "bytes": 59396,
+    "sha256": "52da12866542e6d9948af535e8070f5cc924783ffefa32222762ee17e2bb7e98",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "source": "https://kenney.nl/assets/blaster-kit",
+    "height": null,
+    "length": 2.3,
+    "up": "+Y",
+    "forward": "+Z",
+    "grip": [
+      0,
+      0,
+      0
+    ],
+    "muzzle": "Muzzle",
+    "animations": [],
+    "regions": [
+      "source materials"
+    ],
+    "triangles": 664,
+    "textures": [
+      {
+        "width": 512,
+        "height": 512,
+        "bytes": 10223
+      }
+    ],
+    "preview": "runtime-shared-renderer",
+    "version": 1,
+    "blend": null
+  },
+  {
+    "id": "cryo-polar",
+    "target": "cryo",
+    "label": "冰霜射線",
+    "name": "極地偵巡",
+    "variant": "polar",
+    "asset": null,
+    "file": "models/skins/cryo-polar-v1.glb",
+    "bytes": 46184,
+    "sha256": "b306c29caf92709f2d298e61813a0cd4bfc0e157c9c37aba94584034d9bce044",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "source": "https://kenney.nl/assets/blaster-kit",
+    "height": null,
+    "length": 2.3,
+    "up": "+Y",
+    "forward": "+Z",
+    "grip": [
+      0,
+      0,
+      0
+    ],
+    "muzzle": "Muzzle",
+    "animations": [],
+    "regions": [
+      "Polar_Armor",
+      "Polar_Graphite",
+      "Polar_Energy"
+    ],
+    "triangles": 664,
+    "textures": [],
+    "preview": "runtime-shared-renderer",
+    "version": 1,
+    "blend": "assets-source/blender/skins/cryo-polar.blend"
+  }
+]

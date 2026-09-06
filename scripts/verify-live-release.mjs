@@ -10,8 +10,12 @@ const og=html.match(/property="og:image" content="([^"]+)"/)[1].replaceAll('&amp
 assert.ok(og.startsWith(url+'og-deadzone-v1.png?v='));
 const paths=['','favicon.svg','favicon.ico','apple-touch-icon.png','manifest.webmanifest','sw.js','version.json','models/pulse-mk2.glb','audio/urgent-srg774-loop-v1.mp3','audio/LICENSE.txt'];
 const manifest=await (await fetch(url+'manifest.webmanifest')).json();paths.push(...manifest.icons.map(i=>i.src));
+const skins=JSON.parse(await fs.readFile('src/skin-catalog.json','utf8')).filter(skin=>skin.variant==='polar');
+paths.push(...skins.map(skin=>skin.file));
 for(const name of [...new Set(paths)]) {
-  const r=await fetch(url+name);assert.equal(r.status,200,name);const bytes=Buffer.from(await r.arrayBuffer());assert.ok(bytes.length>0);resources.push({path:name||'index',status:r.status,type:r.headers.get('content-type'),bytes:bytes.length});
+  const r=await fetch(url+name);assert.equal(r.status,200,name);const bytes=Buffer.from(await r.arrayBuffer());assert.ok(bytes.length>0);
+  const skin=skins.find(skin=>skin.file===name);if(skin)assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),skin.sha256);
+  resources.push({path:name||'index',status:r.status,type:r.headers.get('content-type'),bytes:bytes.length});
 }
 const image=await fetch(og,{headers:{'User-Agent':'facebookexternalhit/1.1'}});assert.equal(image.status,200);assert.match(image.headers.get('content-type'),/image\/png/);
 const imageBytes=Buffer.from(await image.arrayBuffer()),local=await fs.readFile('public/og-deadzone-v1.png');
@@ -29,7 +33,16 @@ try {
   assert.equal(await desktop.locator('.weapon-preview').count(),3);
   assert.equal(await desktop.locator('#update-card').isVisible(),false);
   const scope=await desktop.evaluate(async()=>(await navigator.serviceWorker.getRegistration()).scope);assert.equal(scope,url);
-  await desktop.locator('#tutorial-skip').click();await desktop.locator('#build-mode').click();await desktop.waitForTimeout(700);
+  await desktop.locator('#tutorial-skip').click();
+  await desktop.locator('#open-cosmetics').click();
+  for(const target of ['guard','pulse','plasma','cryo']){
+    await desktop.locator(`[data-skin-target="${target}"]`).click();await desktop.locator(`[data-skin-id="${target}-polar"]`).click();
+    await desktop.waitForFunction(()=>!document.querySelector('#apply-cosmetics').disabled);
+  }
+  await desktop.screenshot({path:'artifacts/live-cosmetics.png'});
+  await desktop.locator('#apply-cosmetics').click();
+  assert.ok(Object.values(await desktop.evaluate(()=>deadzone.snapshot().cosmetics.applied)).every(id=>id.endsWith('-polar')));
+  await desktop.locator('#build-mode').click();await desktop.waitForTimeout(700);
   const pad=await desktop.evaluate(()=>deadzone.project(-15,0,.4));await desktop.mouse.click(pad.x,pad.y);assert.equal(await desktop.evaluate(()=>deadzone.snapshot().towers.length),1);
   await desktop.locator('#next-wave').click();await desktop.waitForFunction(()=>deadzone.snapshot().enemies.length>0);await desktop.keyboard.press('2');assert.equal(await desktop.evaluate(()=>deadzone.snapshot().weapon),'plasma');
   await desktop.waitForFunction(()=>deadzone.snapshot().audio.currentTime > .3);

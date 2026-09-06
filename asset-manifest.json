@@ -110,5 +110,57 @@
     "sha256": "4d0867c3c3c8c539106f91fbc0987d0e1b7d2811362d1daed593169c7d3b0fdc",
     "author": "Kenney",
     "license": "CC0-1.0"
+  },
+  {
+    "target": "guard",
+    "author": "Quaternius",
+    "license": "CC0-1.0",
+    "source": "public/models/Characters_Sam_SingleWeapon.gltf",
+    "path": "public/models/skins/guard-polar-v1.glb",
+    "blend": "assets-source/blender/skins/guard-polar.blend",
+    "bytes": 1066408,
+    "triangles": 8926,
+    "sha256": "7a6bdc5382d8ff394b59a9b1c6ca02eda09a3efcd7c97b882551d7c4a049f2c2",
+    "blender": "5.2.1 LTS",
+    "workflow": "Blender background Python (not MCP)"
+  },
+  {
+    "target": "pulse",
+    "author": "Kenney / DEADZONE",
+    "license": "CC0-1.0",
+    "source": "public/models/pulse-mk2.glb",
+    "path": "public/models/skins/pulse-polar-v1.glb",
+    "blend": "assets-source/blender/skins/pulse-polar.blend",
+    "bytes": 38712,
+    "triangles": 542,
+    "sha256": "0471991763bfdf5c5d18fdc0379f013ace4d2a19104c0563535a12dab0b56827",
+    "blender": "5.2.1 LTS",
+    "workflow": "Blender background Python (not MCP)"
+  },
+  {
+    "target": "plasma",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "source": "public/models/blaster-j.glb",
+    "path": "public/models/skins/plasma-polar-v1.glb",
+    "blend": "assets-source/blender/skins/plasma-polar.blend",
+    "bytes": 37704,
+    "triangles": 548,
+    "sha256": "d015b95de059a705102ebc008d74bfd7c138f400d3f9e99ba54edd544ca46522",
+    "blender": "5.2.1 LTS",
+    "workflow": "Blender background Python; material finishing/export via Blender MCP"
+  },
+  {
+    "target": "cryo",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "source": "public/models/blaster-o.glb",
+    "path": "public/models/skins/cryo-polar-v1.glb",
+    "blend": "assets-source/blender/skins/cryo-polar.blend",
+    "bytes": 46184,
+    "triangles": 664,
+    "sha256": "b306c29caf92709f2d298e61813a0cd4bfc0e157c9c37aba94584034d9bce044",
+    "blender": "5.2.1 LTS",
+    "workflow": "Blender background Python (not MCP)"
   }
 ]

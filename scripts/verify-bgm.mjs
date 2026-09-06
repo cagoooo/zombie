@@ -79,7 +79,7 @@ try {
   await playing(page);
   checks.push('原生循環越過曲尾，維持唯一音樂元素');
   await page.close();
-  const broken = await browser.newPage();
+  const broken = await browser.newPage({serviceWorkers:'block'});
   await broken.route('**/audio/*.mp3', (route) => route.abort());
   await ready(broken);
   await broken.locator('#sound').click();

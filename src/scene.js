@@ -318,6 +318,7 @@ export class Battlefield {
     }
     this.baseGunParts ??= [...this.playerGun.children];
     this.weaponSkins = {};
+    this.appearanceIds = {};
     for (const [type, name] of [
       ['pulse', 'blaster-a'],
       ['plasma', 'blaster-j'],
@@ -325,21 +326,7 @@ export class Battlefield {
     ]) {
       const source = this.models[name];
       if (!source) continue;
-      const skin = clone(source.scene),
-        bounds = new THREE.Box3().setFromObject(skin),
-        size = bounds.getSize(new THREE.Vector3());
-      skin.scale.setScalar(2.3 / Math.max(size.x, size.y, size.z));
-      skin.traverse((m) => {
-        if (m.isMesh) {
-          m.castShadow = true;
-          m.material = m.material.clone();
-        }
-      });
-      const pivot = new THREE.Group();
-      pivot.add(skin);
-      pivot.visible = false;
-      this.playerGun.add(pivot);
-      this.weaponSkins[type] = pivot;
+      this.replaceWeaponAppearance(type, source);
       this.renderWeaponPreview(type, source.scene);
     }
     this.setWeapon(this.activeWeapon || 'pulse');
@@ -347,9 +334,15 @@ export class Battlefield {
     this.createActor();
     return this.assetErrors;
   }
-  createActor() {
-    if (this.actor || !this.models.Characters_Sam_SingleWeapon) return;
-    this.actor = this.makeAsset('Characters_Sam_SingleWeapon', 1.9);
+  createActor(source = this.models.Characters_Sam_SingleWeapon, replace = false) {
+    if ((!replace && this.actor) || !source) return;
+    if (this.actor) {
+      this.actor.mixer.stopAllAction();
+      this.actor.mixer.uncacheRoot(this.actor.object);
+      this.actor.object.traverse(n => { if (n.isSkinnedMesh) n.skeleton.dispose(); });
+      this.player.remove(this.actor.root);
+    }
+    this.actor = this.makeAsset('Characters_Sam_SingleWeapon', 1.9, source);
     this.actor.object.traverse((n) => {
       if (n.name === 'Pistol') n.visible = false;
     });
@@ -362,7 +355,100 @@ export class Battlefield {
       if (clip) this.actor.actions[name] = this.actor.mixer.clipAction(clip);
     }
     this.actor.mode = '';
+    // GLTFLoader sanitizes dots in node names for animation property bindings.
+    this.actor.grip = this.actor.object.getObjectByName('Middle1L') || this.actor.object.getObjectByName('Middle1.L');
     this.playerGun.scale.setScalar(0.65);
+  }
+  replaceWeaponAppearance(type, source) {
+    const previous = this.weaponSkins?.[type];
+    if (previous) {
+      this.playerGun.remove(previous);
+      previous.traverse(n => { if (n.isMesh) n.material.dispose(); });
+    }
+    const skin = clone(source.scene);
+    const size = new THREE.Box3().setFromObject(skin).getSize(new THREE.Vector3());
+    skin.scale.setScalar(2.3 / Math.max(size.x, size.y, size.z));
+    skin.traverse(n => {
+      if (n.isMesh) { n.castShadow = true; n.material = n.material.clone(); }
+    });
+    const pivot = new THREE.Group();
+    pivot.add(skin);
+    pivot.updateMatrixWorld(true);
+    const grip = skin.getObjectByName('Grip');
+    if (grip) skin.position.sub(grip.getWorldPosition(new THREE.Vector3()));
+    if (!skin.getObjectByName('Muzzle')) {
+      const bounds = new THREE.Box3().setFromObject(skin);
+      const muzzle = new THREE.Object3D();
+      muzzle.name = 'Muzzle';
+      muzzle.position.set(0, (bounds.min.y + bounds.max.y) / 2, bounds.max.z);
+      pivot.add(muzzle);
+    }
+    this.weaponSkins ||= {};
+    this.weaponSkins[type] = pivot;
+    this.playerGun.add(pivot);
+    this.setWeapon(this.activeWeapon || 'pulse');
+  }
+  applyAppearance(target, source, id) {
+    this.appearanceIds ||= {};
+    if (this.appearanceIds[target] === id) return;
+    if (!source) {
+      if (target === 'guard' && this.actor) {
+        this.actor.mixer.stopAllAction();this.actor.mixer.uncacheRoot(this.actor.object);
+        this.actor.object.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.dispose();});
+        this.player.remove(this.actor.root);this.actor=null;this.fallbackActor.visible=true;
+      } else if (target !== 'guard' && this.weaponSkins?.[target]) {
+        const previous=this.weaponSkins[target];this.playerGun.remove(previous);
+        previous.traverse(n=>{if(n.isMesh)n.material.dispose();});
+        delete this.weaponSkins[target];this.setWeapon(this.activeWeapon || 'pulse');
+      }
+      this.appearanceIds[target] = id;
+      return;
+    }
+    if (target === 'guard') this.createActor(source, true);
+    else {
+      this.replaceWeaponAppearance(target, source);
+      const image = this.appearancePreview(source, false, .65);
+      const preview = document.querySelector(`[data-weapon="${target}"] .weapon-preview`);
+      if (preview) preview.src = image;
+    }
+    this.appearanceIds[target] = id;
+  }
+  appearancePreview(source, actor, angle = .4) {
+    // Reuse the battlefield renderer; no extra WebGL context per dialog or skin.
+    const scene = new THREE.Scene(), object = clone(source.scene);
+    object.traverse(n => { if (n.name === 'Pistol') n.visible = false; });
+    let mixer;
+    if (actor) {
+      mixer = new THREE.AnimationMixer(object);
+      const clip = THREE.AnimationClip.findByName(source.animations, 'Idle_Gun');
+      if (clip) { mixer.clipAction(clip).play(); mixer.update(.25); }
+    }
+    const bounds = new THREE.Box3().setFromObject(object), size = bounds.getSize(new THREE.Vector3());
+    object.position.sub(bounds.getCenter(new THREE.Vector3()));
+    scene.add(object, new THREE.HemisphereLight(0xe4f5ff, 0x394d47, 3));
+    const light = new THREE.DirectionalLight(0xffffff, 3);
+    light.position.set(-3,5,4); scene.add(light);
+    const extent = Math.max(size.x, size.y, size.z) * .65;
+    const camera = new THREE.OrthographicCamera(-extent*1.38,extent*1.38,extent,-extent,.01,100);
+    camera.position.set(Math.sin(angle)*5,actor?1.2:2.5,Math.cos(angle)*5); camera.lookAt(0,0,0);
+    const target = new THREE.WebGLRenderTarget(640,464);
+    target.texture.colorSpace = THREE.SRGBColorSpace;
+    const renderer = this.renderer, previous = renderer.getRenderTarget();
+    const clear = renderer.getClearColor(new THREE.Color()), alpha = renderer.getClearAlpha();
+    try {
+      renderer.setRenderTarget(target); renderer.setClearColor(0x14242b,1); renderer.render(scene,camera);
+      const pixels = new Uint8Array(640*464*4);
+      renderer.readRenderTargetPixels(target,0,0,640,464,pixels);
+      const canvas=document.createElement('canvas'); canvas.width=640;canvas.height=464;
+      const context=canvas.getContext('2d'), data=context.createImageData(640,464);
+      for(let row=0;row<464;row++) data.data.set(pixels.subarray((463-row)*2560,(464-row)*2560),row*2560);
+      context.putImageData(data,0,0);
+      return canvas.toDataURL('image/png');
+    } finally {
+      renderer.setRenderTarget(previous); renderer.setClearColor(clear,alpha); target.dispose();
+      mixer?.stopAllAction(); mixer?.uncacheRoot(object);
+      object.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.dispose();});
+    }
   }
   batchWorld() {
     this.scene.updateMatrixWorld(true);
@@ -472,8 +558,7 @@ export class Battlefield {
     renderer.dispose();
     renderer.forceContextLoss();
   }
-  makeAsset(name, height) {
-    const source = this.models[name];
+  makeAsset(name, height, source = this.models[name]) {
     if (!source) return null;
     const object = clone(source.scene);
     const bounds = new THREE.Box3().setFromObject(object),
@@ -741,6 +826,13 @@ export class Battlefield {
     this.camera.updateMatrixWorld();
     this.recoil = Math.max(0, this.recoil - dt * 1.8);
     this.playerGun.position.y = 1.3 + (this.reducedMotion ? 0 : this.recoil * 0.3);
+    const hand = this.actor?.grip;
+    if (hand) {
+      this.player.updateWorldMatrix(true, true);
+      const grip = this.player.worldToLocal(hand.getWorldPosition(new THREE.Vector3()));
+      this.playerGun.position.copy(grip);
+      this.playerGun.position.y += this.reducedMotion ? 0 : this.recoil * .12;
+    }
     this.playerGun.rotation.x = this.reducedMotion ? 0 : -this.recoil;
     for (const model of this.corpses) {
       model.life -= dt;

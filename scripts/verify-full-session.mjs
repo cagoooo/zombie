@@ -21,8 +21,16 @@ try {
   });
   await page.goto(process.env.GAME_URL || 'http://127.0.0.1:5173');
   await page.waitForSelector('body[data-ready="true"]');
-  await page.clock.install();
   await page.locator('#tutorial-skip').click();
+  await page.locator('#open-cosmetics').click();
+  for(const target of ['guard','pulse','plasma','cryo']){
+    await page.locator(`[data-skin-target="${target}"]`).click();
+    await page.locator(`[data-skin-id="${target}-polar"]`).click();
+    await page.waitForFunction(()=>!document.querySelector('#apply-cosmetics').disabled);
+  }
+  await page.locator('#apply-cosmetics').click();
+  await page.waitForFunction(()=>deadzone.snapshot().grip.bone==='Middle1L');
+  await page.clock.install();
   await page.keyboard.down('w');
   await page.clock.runFor(900);
   await page.keyboard.up('w');
@@ -153,6 +161,8 @@ try {
     restartAfterWin: true,
     restartAfterLoss: true,
     thirdGameStarted: true,
+    cosmetics: won.cosmetics,
+    grip: won.grip,
     resourcesAfterWin,
     resourcesAfterLoss: { memory: restarted.memory, effects: restarted.effectResources },
     errors,

@@ -8,6 +8,7 @@ import { Tutorial } from './tutorial.js';
 import { checkpoint, restore, SAVE_KEY } from './save.js';
 import { PATH, PADS } from './game.js';
 import { GameAudio } from './audio.js';
+import { Cosmetics } from './cosmetics.js';
 import { Game, WEAPONS, TOWERS } from './game.js';
 import { Battlefield } from './scene.js';
 import { FixedStepper } from './timing.js';
@@ -286,6 +287,7 @@ document.addEventListener('visibilitychange', () => {
   if (document.hidden && game.phase === 'wave' && !game.paused) modal('pause');
 });
 window.addEventListener('keydown', (e) => {
+  if (!$('cosmetics-overlay').hidden) return;
   if (!$('settings-overlay').hidden) {
     if (e.code === 'Escape') {
       e.preventDefault();
@@ -541,11 +543,17 @@ async function loadAssets(onlyId = null) {
     $('loading-progress').value = value;
   }, onlyId);
   view.setWeapon(game.weapon);
-  const complete = () => {
+  let completing = false;
+  const complete = async () => {
+    if (completing) return;
+    completing = true;
+    $('continue-fallback').disabled = true;
+    await cosmetics.restore();
     finishLoading();
     game.paused = wasPaused;
     sound.setPaused(wasPaused);
     offerCheckpoint();
+    $('continue-fallback').disabled = false;
   };
   $('continue-fallback').onclick = complete;
   if (errors.length) {
@@ -571,6 +579,7 @@ async function loadAssets(onlyId = null) {
     };
   } else complete();
 }
+const cosmetics = new Cosmetics({view,game,sound,toast,clearInput:()=>{input.clear();shooting=false;}});
 loadAssets();
 // Read-only state snapshot for integration diagnostics; no gameplay mutation hooks.
 window.deadzone = {
@@ -602,6 +611,8 @@ window.deadzone = {
     corpses: view.corpses.length,
     settings: { ...settings },
     audio: sound.music.snapshot(),
+    cosmetics: cosmetics.snapshot(),
+    grip: { bone: view.actor?.grip?.name || null, gunPosition: view.playerGun.position.toArray() },
     assetErrors: view.assetErrors || [],
     render: view.renderer.info.render,
   }),

@@ -32,6 +32,17 @@
 6. 保存原始授權及下載來源，更新 `asset-manifest.json`。模型可跨引擎使用，shader 與遊戲腳本需分別處理。
 7. 匯出後在實際瀏覽器看武器卡、槍口、射擊、陰影；再測貼圖失敗／重試、切槍與完整戰局。
 
-下一步可用 Blender 調整守衛持槍、腳步與三把武器握把的位置；鏡頭及角色受傷規則仍待確認後才定最終角色動作需求。更完整的 SKIN 收藏系統屬 P1-05，目前未選定。
+## v1.4.0 方案 C 與 MCP
+
+守衛及三槍的「極地偵巡」已接入外觀選擇器；母檔在 `assets-source/blender/skins/`，產物在 `public/models/skins/`。`src/skin-catalog.json` 記錄八款外觀（含原版）的 ID、版本、尺寸、方向、動畫、持握／槍口、材質區域、實際三角面、貼圖尺寸、來源與摘要。原素材骨架 `Middle1.L` 經 GLTFLoader 轉成 `Middle1L`，遊戲持握點支援兩者。槍口視覺跟隨 Muzzle，傷害判定仍保留既有規則。
+
+批次母檔可由 `blender --factory-startup --background --python scripts/blender-build-skins.py` 重建，再執行 `node scripts/build-skin-catalog.mjs` 更新清單。批次重建會覆寫生成母檔，手工修改應先另存。電漿槍最後一次材質修整透過真正 MCP 完成；重建後若要重現相同產物，再執行下面的 MCP finishing 與清單刷新。
+
+```powershell
+& "$env:USERPROFILE/.local/share/blender-mcp/source/.venv/Scripts/python.exe" scripts/blender-mcp-client.py --code scripts/blender-mcp-finish-plasma.py --screenshot artifacts/blender-mcp-plasma.png
+node scripts/build-skin-catalog.mjs
+```
+
+使用前先確認 Blender MCP 已啟動。安裝版本、28 個工具清單及實際場景／材質／GLB 證據見 [MCP 安裝與驗證](Blender-MCP安裝與驗證.md)。此前 MK2 使用 CLI；MCP 是 v1.4.0 開發時才接入。完整收拔換槍動畫、新護甲輪廓、防禦塔 SKIN 與收藏解鎖仍是後續候選。
 
 Godot 的適用範圍與導入成本另見 [Godot 導入評估](Godot導入評估與開發路線.md)。
