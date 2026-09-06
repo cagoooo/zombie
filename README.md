@@ -60,7 +60,7 @@ node scripts/verify-ab-foundation.mjs
 node scripts/verify-quality-fallback.mjs
 ~~~
 
-24 項單元測試；完整瀏覽器 10 波、勝敗重開；新增多指觸控、存檔恢復及模型故障測試。Edge headless 與觸控模擬報告在 artifacts，詳細結果見[驗證紀錄](驗證紀錄.md)。實體手機、Safari、長時間發熱及真人難度／聽感尚未驗收。
+25 項單元測試；完整瀏覽器 10 波、勝敗重開；新增多指觸控、存檔恢復及模型故障測試。Edge headless 與觸控模擬報告在 artifacts，詳細結果見[驗證紀錄](驗證紀錄.md)。實體手機、Safari、長時間發熱及真人難度／聽感尚未驗收。
 
 dist 可供靜態部署；已接入 GitHub Pages 自動部署、manifest 與版本更新通知。完整離線下載尚未納入。Three.js 大於 500 kB 的建置提示仍在，建置可成功。
 
