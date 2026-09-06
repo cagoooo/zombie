@@ -264,7 +264,7 @@ export class Game {
         this.damage(e, def.damage * multiplier, def.slow);
     }
   }
-  fire(point) {
+  fire(point, directional = false) {
     if (!point || !Number.isFinite(point.x + point.z)) return false;
     if (this.phase !== 'wave' || this.paused || this.cooldown > 0 || this.overheated) return false;
     const def = WEAPONS[this.weapon];
@@ -274,6 +274,9 @@ export class Game {
     point = { x: from.x + (point.x - from.x) * reach, z: from.z + (point.z - from.z) * reach };
     this.player.angle = Math.atan2(point.x - from.x, point.z - from.z);
     const stop = rayStop(from, point, this.towers);
+    const dx = Math.sin(this.player.angle), dz = Math.cos(this.player.angle);
+    const forward = e => (e.x-from.x)*dx+(e.z-from.z)*dz;
+    const aimDistance = e => directional ? Math.abs((e.x-from.x)*dz-(e.z-from.z)*dx) : Math.hypot(e.x-point.x,e.z-point.z);
     this.cooldown = def.cooldown;
     this.heat = Math.min(100, this.heat + def.heat);
     if (this.heat >= 100) {
@@ -286,12 +289,13 @@ export class Game {
           e.hp > 0 &&
           Math.hypot(e.x - from.x, e.z - from.z) <= def.range &&
           rayStop(from, e, this.towers) >= 0.999 &&
-          Math.hypot(e.x - point.x, e.z - point.z) <
+          (!directional || forward(e) > 0) &&
+          aimDistance(e) <
             (this.aimAssist ? 2.2 : e.type === 'boss' ? 1.4 : 0.7),
       )
       .sort(
         (a, b) =>
-          Math.hypot(a.x - point.x, a.z - point.z) - Math.hypot(b.x - point.x, b.z - point.z),
+          directional ? forward(a)-forward(b) : Math.hypot(a.x - point.x, a.z - point.z) - Math.hypot(b.x - point.x, b.z - point.z),
       )[0];
     if (target) this.hit(target, def);
     this.emit('shot', {

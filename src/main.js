@@ -49,6 +49,10 @@ const tutorial = new Tutorial();
 const input = new Controls({
   canAct: () => !game.paused && !buildMode && ['ready', 'wave'].includes(game.phase),
   shoot: (value) => {
+    if (value && !shooting) {
+      input.update(game, 0);
+      game.fire(view.aim, true);
+    }
     shooting = value;
   },
   aim: (point) => {
@@ -138,7 +142,7 @@ function modal(mode) {
     help: [
       'FIELD MANUAL / 01',
       '指揮官，準備就緒。',
-      '① WASD／方向鍵移動，Shift 奔跑；手機左搖桿移動。\n② 滑鼠瞄準並按住射擊；手機右搖桿瞄準與開火。\n③ 1／2／3 或武器按鈕切槍。熱量滿需冷卻。\n④ B／建造：選塔型點「＋」；點既有塔升級／出售。\n⑤ C／全圖查看戰場；P／空白鍵暫停。\n人物不受傷，敵人只攻核心；貨櫃與塔等主要障礙會擋住玩家射擊。\n準備階段自動保存；戰鬥中重整回到最近部署。\n守住 10 波獲勝，第 5／10 波有巨型殭屍。',
+      '① WASD／方向鍵移動，Shift 奔跑；手機左搖桿移動。\n② 滑鼠瞄準並按住射擊；手機左搖桿移動及轉向，按住右下角朝前方射擊，放開停止。\n③ 1／2／3 或武器按鈕切槍。熱量滿需冷卻。\n④ B／建造：選塔型點「＋」；點既有塔升級／出售。\n⑤ C／全圖查看戰場；P／空白鍵暫停。\n人物不受傷，敵人只攻核心；貨櫃與塔等主要障礙會擋住玩家射擊。\n準備階段自動保存；戰鬥中重整回到最近部署。\n守住 10 波獲勝，第 5／10 波有巨型殭屍。',
       '了解，進入戰場 ↗',
     ],
     won: [
@@ -243,12 +247,40 @@ $('next-wave').onclick = () => {
   }
 };
 const canvas = $('game');
+const syncBrowserZoom = () => {
+  const v=window.visualViewport, root=document.documentElement;
+  root.classList.toggle('browser-zoomed', (v?.scale || 1) > 1.02);
+  $('zoom-recovery').hidden = (v?.scale || 1) <= 1.02;
+  root.style.setProperty('--visible-width', (v?.width || innerWidth)+'px');
+  root.style.setProperty('--visible-left', (v?.offsetLeft || 0)+'px');
+  root.style.setProperty('--visible-top', (v?.offsetTop || 0)+'px');
+};
+window.visualViewport?.addEventListener('resize', syncBrowserZoom);
+window.visualViewport?.addEventListener('scroll', syncBrowserZoom);
+syncBrowserZoom();
+$('reset-viewport').onclick = () => {
+  const meta=document.querySelector('meta[name="viewport"]'), original=meta.content;
+  meta.content='width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,viewport-fit=cover';
+  setTimeout(()=>{meta.content=original;syncBrowserZoom();},300);
+};
+// Older iOS Safari also emits proprietary pinch gestures; touch-action handles modern browsers.
+let allowZoomRecovery = false;
+for (const type of ['gesturestart', 'gesturechange']) {
+  document.addEventListener(type, e => {
+    if (type === 'gesturestart') allowZoomRecovery = (window.visualViewport?.scale || 1) > 1.02;
+    if (!allowZoomRecovery) e.preventDefault();
+  }, {passive:false});
+}
 canvas.addEventListener('pointermove', (e) => {
+  if (e.pointerType === 'touch') return;
+  input.touchMode = false;
   mousePoint = { x: e.clientX, y: e.clientY };
   view.pointerWorld(e.clientX, e.clientY);
 });
 canvas.addEventListener('pointerdown', (e) => {
   if (e.button !== 0 || game.paused) return;
+  if (e.pointerType === 'touch' && !buildMode) return;
+  if (e.pointerType !== 'touch') input.touchMode = false;
   const point = view.pointerWorld(e.clientX, e.clientY);
   if (!point) return;
   const pad = buildMode ? view.pickPad(e.clientX, e.clientY) : null;
@@ -419,9 +451,9 @@ function frame(now) {
   const advanced = stepper.advance(dt, { speed, paused: game.paused }, (step) => {
     input.update(game, step);
     if (game.player.moving) tutorial.mark('move');
-    if (mousePoint && !input.aimStick && !buildMode) view.pointerWorld(mousePoint.x, mousePoint.y);
+    if (mousePoint && !input.touchMode && !buildMode) view.pointerWorld(mousePoint.x, mousePoint.y);
     game.update(step);
-    if (shooting) game.fire(view.aim);
+    if (shooting) game.fire(view.aim, input.touchMode);
   });
   handleEvents();
   saveClock += dt;
@@ -604,6 +636,9 @@ window.deadzone = {
     kills: game.kills,
     weapon: game.weapon,
     heat: game.heat,
+    aim: {...view.aim},
+    touchMode: input.touchMode,
+    shooting,
     towers: game.towers.map((t) => ({ ...t })),
     enemies: game.enemies.map((e) => ({ ...e })),
     assetsReady: view.ready,

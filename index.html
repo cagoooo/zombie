@@ -51,6 +51,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
   </head>
   <body>
+    <p id="zoom-recovery" role="status" hidden>畫面已放大 <button id="reset-viewport" type="button">恢復原比例</button></p>
     <main id="local-file-help">
       <p>DEADZONE｜能量防線</p>
       <h1>請從遊戲網址進入戰場</h1>
@@ -131,8 +132,8 @@
             <div class="joystick" id="move-stick" role="group" aria-label="移動搖桿">
               <i></i><span>移動</span>
             </div>
-            <div class="joystick" id="aim-stick" role="group" aria-label="瞄準射擊搖桿">
-              <i></i><span>瞄準／射擊</span>
+            <div class="joystick" id="aim-stick" role="group" aria-label="按住朝角色前方射擊">
+              <i>⌖</i><span>按住射擊 · 朝前方</span>
             </div>
           </div>
           <div class="weapon-dock">
@@ -355,7 +356,7 @@
             >阿凱老師</a
           ></span
         >
-        <span id="app-version">v1.4.0</span>
+        <span id="app-version">v1.4.1</span>
       </footer>
     </div>
     <section id="update-card" role="status" aria-live="polite" aria-label="遊戲版本更新" hidden>

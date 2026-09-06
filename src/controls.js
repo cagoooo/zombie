@@ -9,7 +9,7 @@ export class Controls {
   constructor({ canAct, shoot, aim }) {
     this.keys = new Set();
     this.stick = { x: 0, y: 0 };
-    this.aimStick = null;
+    this.touchMode = false;
     this.pointers = new Map();
     this.sprint = false;
     this.canAct = canAct;
@@ -47,6 +47,7 @@ export class Controls {
       const el = document.getElementById(id),
         isMove = id === 'move-stick';
       const update = (e) => {
+        if (!isMove) { this.shoot(true); return; }
         const r = el.getBoundingClientRect(),
           dx = (e.clientX - r.left - r.width / 2) / 35,
           dy = (e.clientY - r.top - r.height / 2) / 35,
@@ -54,14 +55,11 @@ export class Controls {
         const v = { x: dx / n, y: dy / n };
         el.firstElementChild.style.transform = `translate(${v.x * 28}px,${v.y * 28}px)`;
         if (isMove) this.stick = v;
-        else {
-          if (Math.hypot(dx, dy) > 0.12) this.aimStick = v;
-          this.shoot(true);
-        }
       };
       el.addEventListener('pointerdown', (e) => {
         if (!canAct() || this.pointers.has(id)) return;
         e.preventDefault();
+        this.touchMode = true;
         this.pointers.set(id, e.pointerId);
         el.setPointerCapture(e.pointerId);
         update(e);
@@ -75,7 +73,6 @@ export class Controls {
         el.firstElementChild.style.transform = '';
         if (isMove) this.stick = { x: 0, y: 0 };
         else {
-          this.aimStick = null;
           this.shoot(false);
         }
       };
@@ -90,7 +87,6 @@ export class Controls {
   clear() {
     this.keys.clear();
     this.stick = { x: 0, y: 0 };
-    this.aimStick = null;
     this.pointers.clear();
     this.shoot(false);
     document.querySelectorAll('.joystick i').forEach((e) => (e.style.transform = ''));
@@ -107,8 +103,10 @@ export class Controls {
       this.stick.y + held('KeyS', 'ArrowDown') - held('KeyW', 'ArrowUp'),
     );
     game.move(v.x, v.z, dt, this.sprint || !!held('ShiftLeft', 'ShiftRight'));
-    if (this.aimStick) {
-      const dir = screenVector(this.aimStick.x, this.aimStick.y);
+    if (this.touchMode) {
+      const length = Math.hypot(v.x, v.z);
+      const dir = length > .12 ? {x:v.x/length,z:v.z/length} : {x:Math.sin(game.player.angle),z:Math.cos(game.player.angle)};
+      game.player.angle = Math.atan2(dir.x, dir.z);
       const range = WEAPONS[game.weapon].range;
       this.aim({ x: game.player.x + dir.x * range, z: game.player.z + dir.z * range });
     }
