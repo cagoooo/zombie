@@ -6,8 +6,10 @@ const browser=await chromium.launch({channel:'msedge',headless:true});
 const results=[],errors=[];
 try{
   for(const [width,height] of [[390,844],[844,390],[320,640],[768,1024]]){
-    const p=await browser.newPage({viewport:{width,height},isMobile:true,hasTouch:true});
+    const p=await browser.newPage({viewport:{width,height},isMobile:true,hasTouch:true,serviceWorkers:'block'});
     p.on('pageerror',e=>errors.push(e.message));await p.goto(url);
+    const viewportMeta=await p.locator('meta[name="viewport"]').getAttribute('content');
+    assert.match(viewportMeta,/maximum-scale=1/);assert.match(viewportMeta,/user-scalable=no/);
     await p.waitForSelector('body[data-ready="true"]');await p.locator('#tutorial-skip').tap();
     await p.locator('#next-wave').tap();
     const cdp=await p.context().newCDPSession(p);
@@ -33,11 +35,12 @@ try{
     }
     await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
     await p.locator('#aim-stick').tap();await p.locator('#aim-stick').tap();
+    await p.locator('#settings').tap();await p.locator('#close-settings').tap();
     assert.equal(await p.evaluate(()=>visualViewport.scale),1);
     await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:2});
-    await p.waitForFunction(()=>document.documentElement.classList.contains('browser-zoomed'));
-    await p.locator('#reset-viewport').tap();
-    await p.waitForFunction(()=>visualViewport.scale<=1.02);
+    await p.waitForTimeout(250);
+    // The locked viewport rejects an attempted programmatic browser zoom as well.
+    assert.equal(await p.evaluate(()=>visualViewport.scale),1);
     assert.equal(await p.locator('#zoom-recovery').isVisible(),false);
     assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
     await p.locator('#settings').tap();

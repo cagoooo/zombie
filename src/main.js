@@ -260,16 +260,22 @@ window.visualViewport?.addEventListener('scroll', syncBrowserZoom);
 syncBrowserZoom();
 $('reset-viewport').onclick = () => {
   const meta=document.querySelector('meta[name="viewport"]'), original=meta.content;
-  meta.content='width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,viewport-fit=cover';
-  setTimeout(()=>{meta.content=original;syncBrowserZoom();},300);
+  meta.content='width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover';
+  syncBrowserZoom();
 };
-// Older iOS Safari also emits proprietary pinch gestures; touch-action handles modern browsers.
-let allowZoomRecovery = false;
-for (const type of ['gesturestart', 'gesturechange']) {
-  document.addEventListener(type, e => {
-    if (type === 'gesturestart') allowZoomRecovery = (window.visualViewport?.scale || 1) > 1.02;
-    if (!allowZoomRecovery) e.preventDefault();
-  }, {passive:false});
+// Older iOS Safari can ignore touch-action, so keep a small native gesture guard as well.
+let lastTouchEnd = 0;
+document.addEventListener('touchend', event => {
+  const now = performance.now();
+  const target = event.target instanceof Element ? event.target : null;
+  if (now - lastTouchEnd < 320 && !target?.closest('button,a,input,select,textarea')) event.preventDefault();
+  lastTouchEnd = now;
+}, {passive:false});
+document.addEventListener('touchmove', event => {
+  if (event.touches.length > 1) event.preventDefault();
+}, {passive:false});
+for (const type of ['gesturestart', 'gesturechange', 'gestureend']) {
+  document.addEventListener(type, event => event.preventDefault(), {passive:false});
 }
 canvas.addEventListener('pointermove', (e) => {
   if (e.pointerType === 'touch') return;

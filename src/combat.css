@@ -402,9 +402,10 @@
     margin: 8px 0;
   }
 }
-/* Keep page scrolling, but do not interpret gameplay touches as browser zoom. */
-html { touch-action: pan-x pan-y; }
-html.browser-zoomed, .browser-zoomed .battlefield, .browser-zoomed #game, .browser-zoomed .joystick { touch-action: pan-x pan-y pinch-zoom !important; }
+/* The game is a fixed touch surface: double-tap and pinch must never resize the playfield. */
+html, body, #app, #update-card, #cosmetics-overlay { touch-action: manipulation; }
+html { -ms-touch-action: manipulation; }
+html.browser-zoomed, .browser-zoomed .battlefield, .browser-zoomed #game, .browser-zoomed .joystick { touch-action: manipulation !important; }
 #zoom-recovery { display:none; }
 #reset-viewport { pointer-events:auto; min-height:44px; padding:8px 12px; margin-left:8px; border:1px solid #d8f36a; background:#d8f36a; color:#142127; font-size:16px; }
 .browser-zoomed #zoom-recovery { display:block; position:fixed; top:var(--visible-top); left:var(--visible-left); width:var(--visible-width); box-sizing:border-box; margin:0; z-index:100; padding:8px; background:#142127; color:white; text-align:center; pointer-events:none; font-size:14px; }
