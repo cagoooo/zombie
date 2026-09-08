@@ -323,6 +323,7 @@ export class Battlefield {
       ['pulse', 'blaster-a'],
       ['plasma', 'blaster-j'],
       ['cryo', 'blaster-o'],
+      ['arc', 'arc-rifle'],
     ]) {
       const source = this.models[name];
       if (!source) continue;
@@ -510,6 +511,7 @@ export class Battlefield {
   setWeapon(type) {
     this.activeWeapon = type;
     this.aimShapes ||= {
+ arc: new THREE.RingGeometry(0.72, 0.8, 8),
       pulse: this.aimRing.geometry,
       plasma: new THREE.RingGeometry(1.02, 1.1, 6),
       cryo: new THREE.RingGeometry(0.55, 0.62, 4),
@@ -578,7 +580,9 @@ export class Battlefield {
   }
   makeZombie(type) {
     const model = this.makeAsset(
-      type === 'tank' || type === 'boss'
+      type === 'armored'
+        ? 'armored-infected'
+        : type === 'tank' || type === 'boss'
         ? 'Zombie_Chubby'
         : type === 'runner'
           ? 'Zombie_Ribcage'
@@ -590,7 +594,8 @@ export class Battlefield {
       const clip =
         THREE.AnimationClip.findByName(model.animations, type === 'runner' ? 'Run' : 'Walk') ||
         model.animations[0];
-      if (clip) model.mixer.clipAction(clip).play();
+      if (type === 'armored') model.animations.forEach(c => model.mixer.clipAction(c).play());
+      else if (clip) model.mixer.clipAction(clip).play();
       return model;
     }
     const root = new THREE.Group();
@@ -604,6 +609,18 @@ export class Battlefield {
       g = new THREE.Group();
     g.position.set(t.x, 0.4, t.z);
     this.scene.add(g);
+    if (t.type === 'arc') {
+      const asset = this.makeAsset('arc-tower', 2.2);
+      if (asset) {
+        g.add(asset.root);
+        const head = new THREE.Group();
+        head.position.y = 1.8;
+        g.add(head);
+        this.towerMeshes.set(t.id, { root: g, head });
+        this.padMeshes[t.pad].plus.visible = false;
+        return;
+      }
+    }
     this.cylinder(0.7, 0.35, 0x8a9875, 0, 0.2, 0, g);
     this.cylinder(0.42, 1.0, 0x35463b, 0, 0.8, 0, g);
     const head = new THREE.Group();

@@ -1,0 +1,5 @@
+DEADZONE Arc Pack — original procedural geometry, 2026-09-08.
+Dedicated to the public domain under CC0 1.0 Universal.
+https://creativecommons.org/publicdomain/zero/1.0/
+No third-party mesh, textures, or paid generation service used.
+Created using native Blender MCP; modeling source and editable archives included in the repository.

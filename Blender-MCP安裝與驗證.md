@@ -1,5 +1,11 @@
 # Blender MCP 安裝與實測
 
+## 2026-09-08 原生 MCP 已實測可用
+
+本輪 `get_scene_info` 成功讀取現有場景；`execute_blender_code` 建立獨立 DEADZONE 三個場景並建模、匯出電弧槍／裝甲感染者／電弧塔。匯出明確限定 active scene，三 GLB 各一場景，未夾帶使用者原有校園模型，最後還原視窗場景。全程保留 safe mode，無需重新安裝。
+
+原生 MCP 製作與最終 GLB 匯出已確認；可編輯 .blend 封存、靜態預覽渲染則由獨立背景 Blender 完成，避免另存整個校園專案。詳見 [電弧素材說明](assets-source/blender/arc-pack/README.md)。下列原生工具尚未載入的文字為 9 月 6 日歷史狀態。
+
 2026-09-06，使用者明確要求搜尋、安裝並使用。採用社群原作者 [ahujasid/blender-mcp](https://github.com/ahujasid/blender-mcp)，不是 Blender Foundation 官方功能，也不是遊戲引擎。
 
 ## 安裝結果

@@ -142,7 +142,7 @@
           <div class="weapon-dock">
             <button data-weapon="pulse" class="selected">1 ⌁ 脈衝</button
             ><button data-weapon="plasma">2 ◎ 電漿</button
-            ><button data-weapon="cryo">3 ❄ 冰霜</button><span id="compact-heat"></span>
+            ><button data-weapon="cryo">3 ❄ 冰霜</button><button data-weapon="arc">4 ϟ 電弧</button><span id="compact-heat"></span>
           </div>
           <section id="checkpoint-panel" class="overlay" hidden>
             <div class="dialog">
@@ -273,6 +273,7 @@
               ><span><strong>電漿迫擊塔</strong><small>範圍爆破 · 群體傷害</small></span
               ><b>ϟ 175</b>
             </button>
+            <button class="tower-card" data-tower="arc"><span class="tower-symbol">ϟ</span><span><strong>電弧干擾塔</strong><small>無視裝甲 · 範圍減速</small></span><b>ϟ 150</b></button>
           </section>
           <section id="tower-detail" class="tower-detail">
             <div class="detail-label">戰術提示 <span>↗</span></div>
@@ -294,7 +295,7 @@
         <div class="arsenal-heading">
           <span class="eyebrow">YOUR LOADOUT</span>
           <h2>選擇你的火力</h2>
-          <span>鍵盤 <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> 切換</span>
+          <span>鍵盤 <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> 切換</span>
         </div>
         <button class="weapon selected" data-weapon="pulse">
           <span class="weapon-key">01</span
@@ -342,6 +343,7 @@
             ><strong>冰霜射線</strong><small>持續減速 <i>●</i> 控場型</small></span
           ><span class="equipped">已裝備</span>
         </button>
+        <button class="weapon" data-weapon="arc"><span class="weapon-key">04</span><svg viewBox="0 0 180 70" aria-hidden="true"><path class="gun-body" d="M20 24h110v8h35v15h-70l-8 20H65l5-20H20z"/></svg><span class="weapon-copy"><strong>電弧抑制槍</strong><small>無視裝甲 <i>●</i> 範圍減速</small></span><span class="equipped">已裝備</span></button>
         <div class="heat-status">
           <div><span>武器熱量</span><b id="heat-label">0%</b></div>
           <div class="meter"><i id="heat-bar"></i></div>

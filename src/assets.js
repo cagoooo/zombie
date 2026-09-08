@@ -2,6 +2,9 @@ import { LoadingManager } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 export const ASSETS = [
+  ['arc-rifle', '電弧抑制槍', 'glb', 'arc-pack/arc-rifle'],
+  ['arc-tower', '電弧干擾塔', 'glb', 'arc-pack/arc-tower'],
+  ['armored-infected', '裝甲感染者', 'glb', 'arc-pack/armored-infected'],
   ['Zombie_Basic', '普通殭屍', 'gltf'],
   ['Zombie_Chubby', '重型殭屍', 'gltf'],
   ['Zombie_Ribcage', '快速殭屍', 'gltf'],

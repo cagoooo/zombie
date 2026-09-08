@@ -95,7 +95,8 @@ export class GameAudio {
     else if (type === 'plasma') {
       this.tone(170, 28, 0.32, 'sawtooth', 0.055);
       this.tone(80, 35, 0.3, 'sine', 0.08);
-    } else if (type === 'cryo') this.tone(1500, 570, 0.1, 'triangle', 0.032);
+    } else if (type === 'arc') this.tone(900, 180, .18, 'sawtooth', .025);
+    else if (type === 'cryo') this.tone(1500, 570, 0.1, 'triangle', 0.032);
     else if (type === 'step') this.tone(110, 40, 0.055, 'triangle', 0.018);
     else if (type === 'hit') this.tone(950, 650, 0.04, 'sine', 0.015);
     else if (type === 'kill') this.tone(580, 1100, 0.12, 'sine', 0.023);

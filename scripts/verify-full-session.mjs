@@ -150,7 +150,7 @@ try {
   assert.ok((await snapshot()).enemies.length > 0);
   assert.deepEqual(errors, []);
   const report = {
-    date: '2026-09-06',
+    date: new Date().toISOString(),
     browser: 'Microsoft Edge headless',
     viewport: '1440x980',
     method:

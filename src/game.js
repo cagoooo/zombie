@@ -20,6 +20,7 @@ export const PADS = [
   [-15, -9],
 ];
 export const WEAPONS = {
+ arc: { name: '電弧抑制槍', color: 0xb66aff, damage: 32, cooldown: .45, heat: 18, radius: 1.8, slow: .8, range: 21, disrupt: true },
   pulse: {
     name: '脈衝步槍',
     color: 0xd8f36a,
@@ -52,6 +53,7 @@ export const WEAPONS = {
   },
 };
 export const TOWERS = {
+ arc: { name: '電弧干擾塔', cost: 150, damage: 18, cooldown: .85, range: 7.5, color: 0xb66aff, radius: 1.8, slow: .8, disrupt: true },
   pulse: {
     name: '脈衝哨塔',
     cost: 100,
@@ -221,30 +223,31 @@ export class Game {
     const type =
       this.wave % 5 === 0 && this.spawnLeft === 1
         ? 'boss'
-        : this.wave >= 3 && i % 5 === 3
+        : this.wave >= 4 && i % 6 === 2 ? 'armored' : this.wave >= 3 && i % 5 === 3
           ? 'tank'
           : this.wave >= 2 && i % 3 === 1
             ? 'runner'
             : 'basic';
     const factor = 1 + (this.wave - 1) * 0.19;
-    const hp = { basic: 64, runner: 44, tank: 190, boss: 1000 }[type] * factor;
+    const hp = { armored: 110, basic: 64, runner: 44, tank: 190, boss: 1000 }[type] * factor;
     const enemy = {
       id: ++this.id,
       type,
       hp,
       maxHp: hp,
-      speed: { basic: 1.55, runner: 2.65, tank: 1.1, boss: 0.9 }[type] * (1 + this.wave * 0.025),
+      speed: { armored: 1.2, basic: 1.55, runner: 2.65, tank: 1.1, boss: 0.9 }[type] * (1 + this.wave * 0.025),
       distance: 0,
       slow: 0,
-      reward: { basic: 12, runner: 13, tank: 25, boss: 130 }[type],
+      reward: { armored: 20, basic: 12, runner: 13, tank: 25, boss: 130 }[type],
       ...pathPoint(0),
     };
     this.enemies.push(enemy);
     this.spawnLeft--;
     this.emit('spawn', { enemy });
   }
-  damage(enemy, amount, slow = 0) {
+  damage(enemy, amount, slow = 0, disrupt = false) {
     if (enemy.hp <= 0) return;
+    amount *= enemy.type === 'armored' && !disrupt ? .6 : 1;
     enemy.hp -= amount;
     enemy.slow = Math.max(enemy.slow, slow);
     this.emit('hit', { enemy, amount });
@@ -261,7 +264,7 @@ export class Game {
         (e === target ||
           (def.radius > 0 && Math.hypot(e.x - target.x, e.z - target.z) <= def.radius && rayStop(target,e,this.towers)>=.999))
       )
-        this.damage(e, def.damage * multiplier, def.slow);
+        this.damage(e, def.damage * multiplier, def.slow, def.disrupt);
     }
   }
   fire(point, directional = false) {
@@ -330,7 +333,7 @@ export class Game {
         e.hp = 0;
         this.health = Math.max(
           0,
-          this.health - { boss: 35, tank: 14, runner: 7, basic: 8 }[e.type],
+          this.health - { armored: 12, boss: 35, tank: 14, runner: 7, basic: 8 }[e.type],
         );
         this.emit('breach', { enemy: e });
       }

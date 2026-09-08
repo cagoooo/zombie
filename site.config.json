@@ -1,7 +1,7 @@
 {
   "url": "https://cagoooo.github.io/zombie/",
   "title": "DEADZONE｜能量防線",
-  "description": "切換三種能量武器，部署防禦塔，迎戰十波殭屍！支援桌機與手機的 3D 射擊塔防遊戲。",
+  "description": "切換四種能量武器，部署防禦塔，迎戰十波殭屍！支援桌機與手機的 3D 射擊塔防遊戲。",
   "image": "og-deadzone-v1.png",
-  "notes": "手機搖桿新增中心容錯與平滑移動，射擊按鈕按住亮起，教學補齊單發／連射說明；保留縮放鎖定。"
+  "notes": "新增 Blender MCP 電弧抑制槍、電弧干擾塔與裝甲感染者：第 4 波起加入裝甲敵人，電弧可無視裝甲並範圍減速。"
 }

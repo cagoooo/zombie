@@ -541,7 +541,7 @@ h1 {
 }
 .arsenal {
   display: grid;
-  grid-template-columns: 174px repeat(3, minmax(0, 1fr)) 174px;
+  grid-template-columns: 150px repeat(4, minmax(0, 1fr)) 174px;
   gap: 12px;
   margin: 22px 24px 20px;
   align-items: center;
@@ -733,7 +733,7 @@ kbd {
     padding: 0 20px;
   }
   .arsenal {
-    grid-template-columns: 130px repeat(3, minmax(0, 1fr));
+    grid-template-columns: 130px repeat(4, minmax(0, 1fr));
     margin: 16px;
   }
   .heat-status {
@@ -863,7 +863,7 @@ kbd {
   }
   .tower-card {
     display: inline-flex;
-    width: calc((100% - 12px) / 3);
+    width: calc((100% - 8px) / 2);
     padding: 9px 5px;
     gap: 3px;
     flex-wrap: wrap;
@@ -1133,3 +1133,5 @@ kbd {
     height: calc(100vh - 232px);
   }
 }
+
+.weapon[data-weapon="arc"] { --weapon-color: #b66aff; }

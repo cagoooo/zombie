@@ -142,7 +142,7 @@ function modal(mode) {
     help: [
       'FIELD MANUAL / 01',
       '指揮官，準備就緒。',
-      '① WASD／方向鍵移動，Shift 奔跑；手機左搖桿移動。\n② 滑鼠瞄準並按住射擊；手機左搖桿移動及轉向，按住右下角朝前方射擊，放開停止。\n③ 1／2／3 或武器按鈕切槍。熱量滿需冷卻。\n④ B／建造：選塔型點「＋」；點既有塔升級／出售。\n⑤ C／全圖查看戰場；P／空白鍵暫停。\n人物不受傷，敵人只攻核心；貨櫃與塔等主要障礙會擋住玩家射擊。\n準備階段自動保存；戰鬥中重整回到最近部署。\n守住 10 波獲勝，第 5／10 波有巨型殭屍。',
+      '① WASD／方向鍵移動，Shift 奔跑；手機左搖桿移動。\n② 滑鼠瞄準並按住射擊；手機左搖桿移動及轉向，按住右下角朝前方射擊，放開停止。\n③ 1／2／3／4 或武器按鈕切槍。熱量滿需冷卻。\n④ B／建造：選塔型點「＋」；點既有塔升級／出售。\n⑤ C／全圖查看戰場；P／空白鍵暫停。\n人物不受傷，敵人只攻核心；貨櫃與塔等主要障礙會擋住玩家射擊。\n準備階段自動保存；戰鬥中重整回到最近部署。\n守住 10 波獲勝，第 5／10 波有巨型殭屍。第 4 波起裝甲感染者抵擋一般傷害 40%，電弧可無視裝甲。',
       '了解，進入戰場 ↗',
     ],
     won: [
@@ -358,7 +358,7 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
     $('overview').click();
   }
-  if (['1', '2', '3'].includes(e.key)) changeWeapon(['pulse', 'plasma', 'cryo'][Number(e.key) - 1]);
+  if (['1', '2', '3', '4'].includes(e.key)) changeWeapon(['pulse', 'plasma', 'cryo', 'arc'][Number(e.key) - 1]);
   if (e.code === 'Space' || e.code === 'KeyP') {
     if (e.code === 'Space' && e.target.tagName === 'BUTTON') return;
     e.preventDefault();
@@ -429,7 +429,7 @@ function handleEvents() {
     if (['wave', 'kill', 'breach', 'build'].includes(event.type)) audio(event.type);
     if (event.type === 'breach') toast('核心遭到攻擊！立即攔截接近終點的敵人');
     if (event.type === 'wave')
-      toast(`第 ${event.wave} 波來襲${event.wave % 5 === 0 ? ' · 偵測到巨型殭屍' : ''}`);
+      toast(`第 ${event.wave} 波來襲${event.wave === 4 ? ' · 裝甲感染者來襲，電弧可無視裝甲' : event.wave % 5 === 0 ? ' · 偵測到巨型殭屍' : ''}`);
     if (event.type === 'clear') toast(`本波守住了！能源 +${event.bonus} · 核心修復 +5%`);
     if (event.type === 'overheat') toast('武器過熱！稍等冷卻後再射擊');
     if (event.type === 'end') {

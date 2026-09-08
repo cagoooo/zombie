@@ -44,7 +44,7 @@ try {
     const failed = await fault.evaluate(() => deadzone.snapshot());
     assert.equal(failed.assetsReady, false);
     assert.equal(failed.paused, true);
-    const expected = pattern === '**/models/**' ? 11 : 1;
+    const expected = pattern === '**/models/**' ? 14 : 1;
     assert.equal(await fault.locator('.asset-failure').count(), expected);
     await fault.locator('#continue-fallback').click();
     await fault.locator('#next-wave').click();
@@ -54,7 +54,7 @@ try {
     await fault.reload();
     await fault.waitForSelector('body[data-ready="true"]');
     assert.equal(await fault.evaluate(() => deadzone.snapshot().assetsReady), true);
-    checks.push(expected === 11 ? '整個模型目錄失敗時 11 項提示、備援開波，恢復網路後重載正常' : '守衛模型失敗可用幾何角色開波，恢復網路後重載正常');
+    checks.push(expected === 14 ? '整個模型目錄失敗時 14 項提示、備援開波，恢復網路後重載正常' : '守衛模型失敗可用幾何角色開波，恢復網路後重載正常');
     await fault.close();
   }
   assert.deepEqual(errors, []);

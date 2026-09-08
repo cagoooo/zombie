@@ -15,15 +15,15 @@ try {
   assert.equal(failed.paused, true);
   assert.ok(failed.assetErrors.some((url) => url.includes('colormap.png')));
   assert.equal(await page.locator('.asset-failure').count(), 2);
-  assert.equal(await page.locator('.weapon-preview').count(), 1);
+  assert.equal(await page.locator('.weapon-preview').count(), 2);
   assert.equal(await page.locator('.weapon svg').count(), 2);
   await page.unroute(blocked);
   await page.locator('.asset-failure button').first().click();
   await page.waitForFunction(() => document.querySelectorAll('.asset-failure').length === 1);
-  assert.equal(await page.locator('.weapon-preview').count(), 2);
+  assert.equal(await page.locator('.weapon-preview').count(), 3);
   await page.locator('#retry-assets').click();
   await page.waitForFunction(() => deadzone.snapshot().assetsReady);
-  assert.equal(await page.locator('.weapon-preview').count(), 3);
+  assert.equal(await page.locator('.weapon-preview').count(), 4);
   assert.equal(await page.locator('#loading-panel').isVisible(), false);
   assert.equal(await page.evaluate(() => deadzone.snapshot().paused), false);
   await page.locator('#settings').click();
@@ -70,12 +70,12 @@ try {
   assert.equal(await page.evaluate(() => deadzone.snapshot().weapon), 'plasma');
   assert.deepEqual(runtimeErrors, []);
   const report = {
-    date: '2026-09-06',
+    date: new Date().toISOString(),
     injectedFailure: 'Texture request blocked in isolated browser',
     checks: [
       '失敗時暫停並列出兩項貼圖依賴錯誤',
       '內嵌貼圖的 Blender MK2 保持正常',
-      '逐項重試與全部重試後恢復三張預覽',
+      '逐項重試與全部重試後恢復四張預覽',
       '備援造型可切槍開局',
       '原模型缺檔時外觀介面可恢復並套用備援造型',
       '音量與減少動態、瞄準輔助設定重載後保留',

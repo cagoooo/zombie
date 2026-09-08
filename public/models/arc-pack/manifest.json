@@ -1,0 +1,38 @@
+[
+  {
+    "id": "arc-rifle",
+    "file": "models/arc-pack/arc-rifle.glb",
+    "bytes": 33552,
+    "triangles": 372,
+    "scenes": 1,
+    "animations": 0,
+    "sha256": "b551a2779108ebcc9de7deaf7e32f7884d527440d4e3b67aac6a818ae3fa031e",
+    "license": "CC0-1.0",
+    "workflow": "native Blender MCP execute_blender_code",
+    "editableArchive": "assets-source/blender/arc-pack/arc-rifle.blend"
+  },
+  {
+    "id": "armored-infected",
+    "file": "models/arc-pack/armored-infected.glb",
+    "bytes": 24120,
+    "triangles": 168,
+    "scenes": 1,
+    "animations": 2,
+    "sha256": "b836f5190976cd5fca8f2d7494cf6551888b32afa551e542072647577aa1029e",
+    "license": "CC0-1.0",
+    "workflow": "native Blender MCP execute_blender_code",
+    "editableArchive": "assets-source/blender/arc-pack/armored-infected.blend"
+  },
+  {
+    "id": "arc-tower",
+    "file": "models/arc-pack/arc-tower.glb",
+    "bytes": 31536,
+    "triangles": 360,
+    "scenes": 1,
+    "animations": 0,
+    "sha256": "ccfdc5222a903883279b574916f1df8d91f020695b6189e4f81f5171a6ce5d06",
+    "license": "CC0-1.0",
+    "workflow": "native Blender MCP execute_blender_code",
+    "editableArchive": "assets-source/blender/arc-pack/arc-tower.blend"
+  }
+]
