@@ -412,6 +412,8 @@ html.browser-zoomed, .browser-zoomed .battlefield, .browser-zoomed #game, .brows
 .battlefield { touch-action: pan-x pan-y; }
 button, a, select, input { touch-action: manipulation; }
 #aim-stick i { display:grid; place-items:center; font-style:normal; font-size:28px; color:#e8ff90; }
+#aim-stick.is-held { background:#37502c; outline:2px solid #d8f36a; }
+#aim-stick.is-held i { color:#fff; }
 @media (pointer: coarse) {
   input, select, textarea { font-size:16px !important; }
 }

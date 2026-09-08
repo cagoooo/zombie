@@ -5,6 +5,12 @@ export function screenVector(x, y) {
     b = 37 / Math.hypot(24, 37);
   return { x: x * b + y * a, z: -x * a + y * b };
 }
+export function stickVector(x, y) {
+  const length = Math.hypot(x, y);
+  if (!Number.isFinite(length) || length <= 0.12) return { x: 0, y: 0 };
+  const strength = Math.min(1, (length - 0.12) / 0.88);
+  return { x: x / length * strength, y: y / length * strength };
+}
 export class Controls {
   constructor({ canAct, shoot, aim }) {
     this.keys = new Set();
@@ -50,9 +56,8 @@ export class Controls {
         if (!isMove) { this.shoot(true); return; }
         const r = el.getBoundingClientRect(),
           dx = (e.clientX - r.left - r.width / 2) / 35,
-          dy = (e.clientY - r.top - r.height / 2) / 35,
-          n = Math.max(1, Math.hypot(dx, dy));
-        const v = { x: dx / n, y: dy / n };
+          dy = (e.clientY - r.top - r.height / 2) / 35;
+        const v = stickVector(dx, dy);
         el.firstElementChild.style.transform = `translate(${v.x * 28}px,${v.y * 28}px)`;
         if (isMove) this.stick = v;
       };
@@ -61,6 +66,7 @@ export class Controls {
         e.preventDefault();
         this.touchMode = true;
         this.pointers.set(id, e.pointerId);
+        el.classList.add('is-held');
         el.setPointerCapture(e.pointerId);
         update(e);
       });
@@ -70,6 +76,7 @@ export class Controls {
       const release = (e) => {
         if (this.pointers.get(id) !== e.pointerId) return;
         this.pointers.delete(id);
+        el.classList.remove('is-held');
         el.firstElementChild.style.transform = '';
         if (isMove) this.stick = { x: 0, y: 0 };
         else {
@@ -89,6 +96,7 @@ export class Controls {
     this.stick = { x: 0, y: 0 };
     this.pointers.clear();
     this.shoot(false);
+    document.querySelectorAll('.joystick').forEach((e) => e.classList.remove('is-held'));
     document.querySelectorAll('.joystick i').forEach((e) => (e.style.transform = ''));
   }
   update(game, dt) {
