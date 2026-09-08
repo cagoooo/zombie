@@ -11,6 +11,7 @@ export function checkpoint(game) {
     credits: game.credits,
     kills: game.kills,
     weapon: game.weapon,
+    empCooldown: game.empCooldown,
     player: { x: game.player.x, z: game.player.z, angle: game.player.angle },
     towers: game.towers.map((t) => ({ pad: t.pad, type: t.type, level: t.level, spent: t.spent, strategy: t.strategy ?? 'first' })),
   };
@@ -27,6 +28,7 @@ export function restore(raw) {
     !integer(data.credits, 0, 100000) ||
     !integer(data.kills, 0, 245) ||
     !Object.hasOwn(WEAPONS, data.weapon) ||
+    (data.empCooldown !== undefined && (!Number.isFinite(data.empCooldown) || data.empCooldown < 0 || data.empCooldown > 45)) ||
     !Array.isArray(data.towers) ||
     data.towers.length > 8
   )
@@ -38,6 +40,7 @@ export function restore(raw) {
   game.credits = data.credits;
   game.kills = data.kills;
   game.weapon = data.weapon;
+  game.empCooldown = data.empCooldown ?? 0;
   for (const t of data.towers) {
     if (
       !t ||

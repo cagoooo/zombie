@@ -411,6 +411,13 @@
 .upgrade-preview th:first-child { text-align: left; }
 .upgrade-preview td:last-child { color: #d8f36a; }
 #upgrade-budget { font-size: 12px; line-height: 1.6; }
+.save-transfer { margin: 16px 0; padding: 12px; border: 1px solid #61734d; min-width: 0; }
+.save-transfer p { font-size: 12px; line-height: 1.6; }
+.save-transfer input { max-width: 100%; min-height: 44px; font-size: 16px; }
+.save-transfer input::file-selector-button { min-height: 44px; background: #20301f; color: #edf4df; border: 1px solid #76855d; }
+.save-transfer button { min-height: 44px; margin: 4px 4px 4px 0; padding: 8px; background: #20301f; color: #edf4df; border: 1px solid #76855d; }
+#close-settings { min-height: 44px; }
+#emp { min-width: 64px; }
 html, body, #app, #update-card, #cosmetics-overlay { touch-action: manipulation; }
 html { -ms-touch-action: manipulation; }
 html.browser-zoomed, .browser-zoomed .battlefield, .browser-zoomed #game, .browser-zoomed .joystick { touch-action: manipulation !important; }

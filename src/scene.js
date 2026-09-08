@@ -765,6 +765,14 @@ export class Battlefield {
     const turret = event.towerId ? this.towerMeshes.get(event.towerId)?.head : this.playerGun;
     if (turret) turret.rotation.y = Math.atan2(to.x - from.x, to.z - from.z);
   }
+  emp(event) {
+    if (this.reducedMotion) return;
+    const ring = this.effect('emp', () => new THREE.RingGeometry(event.radius - .15, event.radius, 48), 0xb66aff);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.set(event.x, .18, event.z);
+    this.scene.add(ring);
+    this.effects.push({ mesh: ring, life: .6, total: .6 });
+  }
   removeEffect(effect) {
     this.scene.remove(effect.mesh);
     const key = effect.mesh.userData.poolKey,

@@ -1,3 +1,4 @@
+import { setupSaveTransfer } from './save-transfer.js';
 import { startUpdates } from './pwa.js';
 import './style.css';
 import './controls.css';
@@ -173,7 +174,7 @@ function modal(mode) {
     help: [
       'FIELD MANUAL / 01',
       '指揮官，準備就緒。',
-      '① WASD／方向鍵移動，Shift 奔跑；手機左搖桿移動。\n② 滑鼠瞄準並按住射擊；手機左搖桿移動及轉向，按住右下角朝前方射擊，放開停止。\n③ 1／2／3／4 或武器按鈕切槍。熱量滿需冷卻。\n④ B／建造：選塔型點「＋」；點既有塔升級／出售。\n⑤ C／全圖查看戰場；P／空白鍵暫停。\n人物不受傷，敵人只攻核心；貨櫃與塔等主要障礙會擋住玩家射擊。\n準備階段自動保存；戰鬥中重整回到最近部署。\n守住 10 波獲勝，第 5／10 波有巨型殭屍。第 4 波起裝甲感染者抵擋一般傷害 40%，電弧可無視裝甲。',
+      '① WASD／方向鍵移動，Shift 奔跑；手機左搖桿移動。\n② 滑鼠瞄準並按住射擊；手機左搖桿移動及轉向，按住右下角朝前方射擊，放開停止。\n③ 1／2／3／4 或武器按鈕切槍。熱量滿需冷卻。\n④ B／建造：選塔型點「＋」；點既有塔升級／出售。\n⑤ C／全圖查看戰場；P／空白鍵暫停。E／EMP：周圍 8 單位傷害與減速，45 秒冷卻，無目標不消耗。\n人物不受傷，敵人只攻核心；貨櫃與塔等主要障礙會擋住玩家射擊。\n準備階段自動保存；戰鬥中重整回到最近部署。\n守住 10 波獲勝，第 5／10 波有巨型殭屍。第 4 波起裝甲感染者抵擋一般傷害 40%，電弧可無視裝甲。',
       '了解，進入戰場 ↗',
     ],
     won: [
@@ -213,6 +214,7 @@ function resume() {
   $('pause').textContent = 'Ⅱ 暫停';
 }
 $('resume').onclick = resume;
+$('emp').onclick = () => { if (!game.useEMP()) toast('EMP 範圍內沒有敵人，或目前無法使用'); };
 $('help').onclick = () => {
   if (!$('loading-panel').hidden || !$('settings-overlay').hidden || !$('checkpoint-panel').hidden)
     return;
@@ -381,6 +383,7 @@ window.addEventListener('keydown', (e) => {
     /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)
   )
     return;
+  if (e.code === 'KeyE') { e.preventDefault(); $('emp').click(); }
   if (e.code === 'KeyB' && !game.paused) {
     e.preventDefault();
     $('build-mode').click();
@@ -402,6 +405,9 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Escape' && game.paused && !['won', 'lost'].includes(game.phase)) resume();
 });
 function updateUI() {
+  const empLabel = game.empCooldown > 0 ? `EMP ${Math.ceil(game.empCooldown)}s` : 'EMP E';
+  if ($('emp').textContent !== empLabel) $('emp').textContent = empLabel;
+  $('emp').disabled = game.phase !== 'wave' || game.paused || game.empCooldown > 0;
   syncTowerActions();
   const status = { ready: '準備階段', wave: '敵軍來襲', won: '防守成功', lost: '核心失守' }[
     game.phase
@@ -437,6 +443,7 @@ function updateUI() {
 }
 function handleEvents() {
   for (const event of game.events.splice(0)) {
+    if (event.type === 'emp') { view.emp(event); audio('arc'); toast(`EMP 命中 ${event.count} 隻敵人`); }
     if (event.type === 'shot') {
       view.shot(event);
       if (!event.towerId) {
@@ -587,6 +594,7 @@ $('settings').onclick = () => {
   $('effects-volume').focus();
 };
 $('close-settings').onclick = () => {
+  saveTransfer.cancel();
   $('settings-overlay').hidden = true;
   game.paused = settingsWasPaused;
   sound.setPaused(game.paused);
@@ -674,6 +682,7 @@ window.deadzone = {
     kills: game.kills,
     weapon: game.weapon,
     heat: game.heat,
+    empCooldown: game.empCooldown,
     aim: {...view.aim},
     touchMode: input.touchMode,
     shooting,
@@ -796,6 +805,19 @@ $('new-game').onclick = () => {
   persistReady();
   updateUI();
 };
+const saveTransfer = setupSaveTransfer({
+  getGame: () => game,
+  applyGame: (next) => {
+    view.reset(); Object.assign(game, next);
+    game.paused = true; game.aimAssist = settings.aimAssist;
+    selectedTower = null; pendingSave = null; resumeChecked = true;
+    input.clear(); shooting = false; speed = 1; $('speed').textContent = '1× 速度';
+    setBuild(false); changeWeapon(game.weapon); towerDetail();
+    view.follow.set(game.player.x * .7, 0, game.player.z * .55);
+    view.aim = { x: game.player.x + Math.sin(game.player.angle) * 8, z: game.player.z + Math.cos(game.player.angle) * 8 };
+    saveLast = JSON.stringify(checkpoint(game)); updateUI();
+  },
+});
 window.addEventListener('pagehide', persistReady);
 function drawMinimap() {
   const canvas = $('minimap'),

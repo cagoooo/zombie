@@ -1,4 +1,5 @@
 import { canStand, rayStop } from './world.js';
+export const EMP = { radius: 8, damage: 45, slow: 2.5, cooldown: 45 };
 export const TARGET_STRATEGIES = { first: '最前方', nearest: '最近', strongest: '最強' };
 export function towerStats(t, level = t.level) {
   const def = TOWERS[t.type];
@@ -135,6 +136,7 @@ export class Game {
     this.heat = 0;
     this.overheated = false;
     this.cooldown = 0;
+    this.empCooldown = 0;
     this.aimAssist = true;
     this.spawnLeft = 0;
     this.spawnTimer = 0;
@@ -334,6 +336,15 @@ export class Game {
     });
     return true;
   }
+  useEMP() {
+    if (this.phase !== 'wave' || this.paused || this.empCooldown > 0) return false;
+    const targets = this.enemies.filter(e => e.hp > 0 && Math.hypot(e.x - this.player.x, e.z - this.player.z) <= EMP.radius);
+    if (!targets.length) return false;
+    this.empCooldown = EMP.cooldown;
+    for (const e of targets) this.damage(e, EMP.damage * (e.type === 'boss' ? .5 : 1), e.type === 'boss' ? .8 : EMP.slow, true);
+    this.emit('emp', { x: this.player.x, z: this.player.z, radius: EMP.radius, count: targets.length });
+    return true;
+  }
   update(dt) {
     if (this.paused || ['won', 'lost'].includes(this.phase)) return;
     dt = Math.max(0, Math.min(dt, 0.1));
@@ -341,6 +352,7 @@ export class Game {
     this.heat = Math.max(0, this.heat - dt * 23);
     if (this.overheated && this.heat <= 22) this.overheated = false;
     this.cooldown = Math.max(0, this.cooldown - dt);
+    this.empCooldown = Math.max(0, this.empCooldown - dt);
     if (this.phase !== 'wave') return;
     this.spawnTimer -= dt;
     if (this.spawnLeft > 0 && this.spawnTimer <= 0) {
