@@ -48,7 +48,7 @@ try {
     [0, 'pulse'],
     [1, 'cryo'],
     [7, 'plasma'],
-    [4, 'pulse'],
+    [4, process.env.TOWER_STRATEGY_TEST ? 'arc' : 'pulse'],
     [3, 'plasma'],
     [5, 'pulse'],
     [2, 'pulse'],
@@ -61,6 +61,9 @@ try {
         await page.locator(`[data-tower="${type}"]`).click();
         await clickPad(pad);
         assert.ok((await snapshot()).towers.some((t) => t.pad === pad));
+        if (process.env.TOWER_STRATEGY_TEST) {
+          await page.locator('#tower-strategy').selectOption(type === 'cryo' ? 'nearest' : type === 'arc' ? 'strongest' : 'first');
+        }
       }
     }
     for (const tower of (await snapshot()).towers) {
@@ -152,6 +155,7 @@ try {
   const report = {
     date: new Date().toISOString(),
     browser: 'Microsoft Edge headless',
+    configuration: process.env.TOWER_STRATEGY_TEST ? '四塔混合；冰凍最近、電弧最強、其餘最前方' : '原配置；最前方',
     viewport: '1440x980',
     method:
       'Normal pointer and button input with accelerated browser clock; read-only snapshots; no resource or combat cheats',

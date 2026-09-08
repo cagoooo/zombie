@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { AssetLibrary } from './assets.js';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { PATH, PADS, TOWERS, WEAPONS } from './game.js';
+import { PATH, PADS, TOWERS, WEAPONS, towerStats } from './game.js';
 
 const palette = {
   ground: 0x3b4935,
@@ -659,7 +659,7 @@ export class Battlefield {
     }
     this.rangeRing.visible = true;
     this.rangeRing.position.set(t.x, 0.2, t.z);
-    const range = TOWERS[t.type].range + (t.level - 1) * 1.2;
+    const range = towerStats(t).range;
     this.rangeRing.scale.setScalar(range / 8);
     this.rangeRing.material.color.setHex(TOWERS[t.type].color);
   }

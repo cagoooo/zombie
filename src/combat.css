@@ -403,6 +403,14 @@
   }
 }
 /* The game is a fixed touch surface: double-tap and pinch must never resize the playfield. */
+.tower-detail label { display: block; margin: 10px 0 6px; }
+#tower-strategy { width: 100%; min-height: 44px; padding: 8px; font-size: 16px; background: #17221a; color: #edf4df; border: 1px solid #76855d; border-radius: 4px; }
+.tower-detail #strategy-help, .tower-detail .upgrade-note { font-size: 11px; line-height: 1.6; margin: 8px 0; }
+.upgrade-preview { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+.upgrade-preview th, .upgrade-preview td { padding: 7px 3px; border-bottom: 1px solid #596447; text-align: right; }
+.upgrade-preview th:first-child { text-align: left; }
+.upgrade-preview td:last-child { color: #d8f36a; }
+#upgrade-budget { font-size: 12px; line-height: 1.6; }
 html, body, #app, #update-card, #cosmetics-overlay { touch-action: manipulation; }
 html { -ms-touch-action: manipulation; }
 html.browser-zoomed, .browser-zoomed .battlefield, .browser-zoomed #game, .browser-zoomed .joystick { touch-action: manipulation !important; }

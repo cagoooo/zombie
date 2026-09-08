@@ -1,4 +1,20 @@
 import { canStand, rayStop } from './world.js';
+export const TARGET_STRATEGIES = { first: '最前方', nearest: '最近', strongest: '最強' };
+export function towerStats(t, level = t.level) {
+  const def = TOWERS[t.type];
+  const cooldown = def.cooldown / (1 + (level - 1) * 0.12);
+  return { damage: def.damage * (1 + (level - 1) * 0.65),
+    range: def.range + (level - 1) * 1.2, cooldown, rate: 1 / cooldown };
+}
+export function towerTarget(t, enemies) {
+  const range = towerStats(t).range;
+  const distance = e => Math.hypot(e.x - t.x, e.z - t.z);
+  return enemies.filter(e => e.hp > 0 && distance(e) < range).sort((a, b) => {
+    const priority = t.strategy === 'nearest' ? distance(a) - distance(b)
+      : t.strategy === 'strongest' ? b.hp - a.hp : 0;
+    return priority || b.distance - a.distance || a.id - b.id;
+  })[0];
+}
 export const PATH = [
   [-20, -5],
   [-11, -5],
@@ -182,6 +198,7 @@ export class Game {
       pad,
       type,
       level: 1,
+      strategy: 'first',
       spent: def.cost,
       cooldown: 0,
       x: PADS[pad][0],
@@ -193,6 +210,12 @@ export class Game {
   }
   upgradeCost(t) {
     return Math.round(TOWERS[t.type].cost * 0.7 * t.level);
+  }
+  setTowerStrategy(id, strategy) {
+    const t = this.towers.find(t => t.id === id);
+    if (!t || !Object.hasOwn(TARGET_STRATEGIES, strategy) || this.paused || ['won', 'lost'].includes(this.phase)) return false;
+    t.strategy = strategy;
+    return true;
   }
   upgrade(id) {
     const t = this.towers.find((t) => t.id === id);
@@ -347,14 +370,11 @@ export class Game {
       t.cooldown -= dt;
       if (t.cooldown > 0) continue;
       const def = TOWERS[t.type];
-      const target = this.enemies
-        .filter(
-          (e) => e.hp > 0 && Math.hypot(e.x - t.x, e.z - t.z) < def.range + (t.level - 1) * 1.2,
-        )
-        .sort((a, b) => b.distance - a.distance)[0];
+      const stats = towerStats(t);
+      const target = towerTarget(t, this.enemies);
       if (target) {
-        this.hit(target, def, 1 + (t.level - 1) * 0.65);
-        t.cooldown = def.cooldown / (1 + (t.level - 1) * 0.12);
+        this.hit(target, { ...def, damage: stats.damage });
+        t.cooldown = stats.cooldown;
         this.emit('shot', {
           from: { x: t.x, z: t.z, y: 2.2 },
           to: { x: target.x, z: target.z, y: 1 },

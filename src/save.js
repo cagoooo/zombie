@@ -1,4 +1,4 @@
-import { Game, TOWERS, PADS, WEAPONS } from './game.js';
+import { Game, TOWERS, PADS, WEAPONS, TARGET_STRATEGIES } from './game.js';
 import { canStand } from './world.js';
 export const SAVE_KEY = 'deadzone-checkpoint-v1';
 export function checkpoint(game) {
@@ -12,7 +12,7 @@ export function checkpoint(game) {
     kills: game.kills,
     weapon: game.weapon,
     player: { x: game.player.x, z: game.player.z, angle: game.player.angle },
-    towers: game.towers.map((t) => ({ pad: t.pad, type: t.type, level: t.level, spent: t.spent })),
+    towers: game.towers.map((t) => ({ pad: t.pad, type: t.type, level: t.level, spent: t.spent, strategy: t.strategy ?? 'first' })),
   };
 }
 export function restore(raw) {
@@ -44,7 +44,8 @@ export function restore(raw) {
       !integer(t.pad, 0, 7) ||
       pads.has(t.pad) ||
       !Object.hasOwn(TOWERS, t.type) ||
-      !integer(t.level, 1, 3)
+      !integer(t.level, 1, 3) ||
+      (t.strategy !== undefined && !Object.hasOwn(TARGET_STRATEGIES, t.strategy))
     )
       throw Error('防禦塔存檔損毀');
     const cost = TOWERS[t.type].cost,
@@ -56,7 +57,7 @@ export function restore(raw) {
         );
     if (t.spent !== spent) throw Error('防禦塔投入數值不符');
     pads.add(t.pad);
-    game.towers.push({ ...t, id: ++game.id, cooldown: 0, x: PADS[t.pad][0], z: PADS[t.pad][1] });
+    game.towers.push({ ...t, strategy: t.strategy ?? 'first', id: ++game.id, cooldown: 0, x: PADS[t.pad][0], z: PADS[t.pad][1] });
   }
   if (
     !data.player ||

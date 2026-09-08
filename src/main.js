@@ -9,7 +9,7 @@ import { checkpoint, restore, SAVE_KEY } from './save.js';
 import { PATH, PADS } from './game.js';
 import { GameAudio } from './audio.js';
 import { Cosmetics } from './cosmetics.js';
-import { Game, WEAPONS, TOWERS } from './game.js';
+import { Game, WEAPONS, TOWERS, TARGET_STRATEGIES, towerStats } from './game.js';
 import { Battlefield } from './scene.js';
 import { FixedStepper } from './timing.js';
 
@@ -112,9 +112,26 @@ function towerDetail() {
       '<div class="detail-label">戰術提示 <span>↗</span></div><p>彎道是最好的伏擊點。<br>搭配冰凍與電漿，延長火力覆蓋。</p>';
     return;
   }
-  const def = TOWERS[t.type];
+  const def = TOWERS[t.type], current = towerStats(t);
+  const next = t.level < 3 ? towerStats(t, t.level + 1) : null;
+  const format = (value, digits) => (Math.round((value + 1e-9) * 10 ** digits) / 10 ** digits).toFixed(digits);
+  const row = (label, key, digits) => `<tr><th scope="row">${label}</th><td>${format(current[key], digits)}</td><td>${next ? format(next[key], digits) : '—'}</td></tr>`;
   $('tower-detail').innerHTML =
-    `<div class="detail-label">${def.name} · Lv.${t.level}<span>↗</span></div><p>傷害 ${Math.round(def.damage * (1 + (t.level - 1) * 0.65))} · 射程 ${(def.range + (t.level - 1) * 1.2).toFixed(1)}<br>出售返還已投入能源的 70%</p><button id="upgrade" ${t.level >= 3 ? 'disabled' : ''}>${t.level >= 3 ? '已達最高等級' : `升級 ϟ ${game.upgradeCost(t)}`}</button><button id="sell">出售 ϟ ${Math.floor((t.spent * 70) / 100)}</button>`;
+    `<div class="detail-label">${def.name} · Lv.${t.level}<span>↗</span></div>
+    <label for="tower-strategy">目標策略</label>
+    <select id="tower-strategy" aria-describedby="strategy-help">${Object.entries(TARGET_STRATEGIES).map(([key,label]) => `<option value="${key}" ${key === (t.strategy ?? 'first') ? 'selected' : ''}>${label}</option>`).join('')}</select>
+    <p id="strategy-help">最前方：接近核心；最近：離塔最近；最強：目前生命值最高。只選射程內存活敵人，同分優先最前方。</p>
+    <table class="upgrade-preview" aria-label="升級能力比較"><thead><tr><th>能力</th><th>Lv.${t.level}</th><th>${next ? `Lv.${t.level + 1}` : '最高級'}</th></tr></thead><tbody>${row('傷害', 'damage', 1)}${row('射程', 'range', 1)}${row('次／秒', 'rate', 2)}</tbody></table>
+    <p class="upgrade-note">數值四捨五入顯示；傷害為減傷前單次傷害。升級不改變爆破半徑或減速時間。</p>
+    <p id="upgrade-budget" aria-live="polite"></p>
+    <button id="upgrade"></button><button id="sell">出售 ϟ ${Math.floor((t.spent * 70) / 100)}</button>`;
+  $('tower-strategy').onchange = () => {
+    if (game.setTowerStrategy(t.id, $('tower-strategy').value)) {
+      persistReady();
+      toast(`已設定：${TARGET_STRATEGIES[t.strategy]}`);
+    } else $('tower-strategy').value = t.strategy ?? 'first';
+  };
+  syncTowerActions();
   $('upgrade').onclick = () => {
     if (game.upgrade(t.id)) {
       toast('防禦塔升級完成');
@@ -128,6 +145,20 @@ function towerDetail() {
       toast('防禦塔已回收');
     }
   };
+}
+function syncTowerActions() {
+  const t = game.towers.find(t => t.id === selectedTower);
+  if (!t || !$('upgrade')) return;
+  const locked = game.paused || ['won', 'lost'].includes(game.phase);
+  const key = `${t.id}/${t.level}/${game.credits}/${locked}`;
+  if ($('upgrade').dataset.state === key) return;
+  $('upgrade').dataset.state = key;
+  const max = t.level >= 3, cost = game.upgradeCost(t), short = Math.max(0, cost - game.credits);
+  $('upgrade').disabled = locked || max || short > 0;
+  $('upgrade').textContent = max ? '已達最高等級' : `升級 ϟ ${cost}`;
+  $('upgrade-budget').textContent = max ? '已達 Lv.3，仍可調整策略或出售。' : `費用 ${cost} · 現有 ${game.credits} · ${short ? `尚缺 ${short}` : `升級後剩餘 ${game.credits - cost}`}`;
+  $('sell').disabled = locked;
+  $('tower-strategy').disabled = locked;
 }
 function modal(mode) {
   shooting = false;
@@ -371,6 +402,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Escape' && game.paused && !['won', 'lost'].includes(game.phase)) resume();
 });
 function updateUI() {
+  syncTowerActions();
   const status = { ready: '準備階段', wave: '敵軍來襲', won: '防守成功', lost: '核心失守' }[
     game.phase
   ];
