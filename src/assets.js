@@ -2,6 +2,10 @@ import { LoadingManager } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 export const ASSETS = [
+  ['rail-rifle','磁軌狙擊槍','glb','factory-pack/rail-rifle'],
+  ['dash-infected','衝刺感染者','glb','factory-pack/dash-infected'],
+  ['shield-infected','護盾感染者','glb','factory-pack/shield-infected'],
+  ['rift-boss','裂核者','glb','factory-pack/rift-boss'],
   ['shield-station','核心護盾站','glb','support-pack/shield-station'],
   ['repair-station','核心修復站','glb','support-pack/repair-station'],
   ['arc-rifle', '電弧抑制槍', 'glb', 'arc-pack/arc-rifle'],

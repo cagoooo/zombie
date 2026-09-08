@@ -6,8 +6,8 @@ import './combat.css';
 import './release.css';
 import { Controls } from './controls.js';
 import { Tutorial } from './tutorial.js';
-import { checkpoint, restore, SAVE_KEY } from './save.js';
-import { PATH, PADS } from './game.js';
+import { checkpoint, restore, saveKey } from './save.js';
+import { MAPS } from './maps.js';
 import { GameAudio } from './audio.js';
 import { Cosmetics } from './cosmetics.js';
 import { Game, WEAPONS, TOWERS, TARGET_STRATEGIES, BRANCHES, towerStats } from './game.js';
@@ -15,10 +15,11 @@ import { Battlefield } from './scene.js';
 import { FixedStepper } from './timing.js';
 
 const $ = (id) => document.getElementById(id),
-  game = new Game();
+  game = new Game(Object.hasOwn(MAPS,new URL(location.href).searchParams.get('map')) ? new URL(location.href).searchParams.get('map') : 'outpost-1');
+const SAVE_KEY=saveKey(game.mapId);
 let view;
 try {
-  view = new Battlefield($('game'));
+  view = new Battlefield($('game'),game.map);
 } catch (error) {
   $('phase-label').textContent = '3D 畫面啟動失敗';
   $('dialog-title').textContent = '無法啟動 3D 戰場';
@@ -183,7 +184,7 @@ function modal(mode) {
     help: [
       'FIELD MANUAL / 01',
       '指揮官，準備就緒。',
-      '① WASD／方向鍵移動，Shift 奔跑；手機左搖桿移動。\n② 滑鼠瞄準並按住射擊；手機左搖桿移動及轉向，按住右下角朝前方射擊，放開停止。\n③ 1／2／3／4 或武器按鈕切槍。熱量滿需冷卻。\n④ B／建造：選塔型點「＋」；點既有塔升級／出售。\n⑤ C／全圖查看戰場；P／空白鍵暫停。E／EMP：周圍 8 單位傷害與減速，45 秒冷卻，無目標不消耗。\n人物不受傷，敵人只攻核心；貨櫃與塔等主要障礙會擋住玩家射擊。\n準備階段自動保存；戰鬥中重整回到最近部署。\n守住 10 波獲勝，第 5／10 波有巨型殭屍。第 4 波起裝甲感染者抵擋一般傷害 40%，電弧可無視裝甲。',
+      '① WASD／方向鍵移動，Shift 奔跑；手機左搖桿移動。\n② 滑鼠瞄準並按住射擊；手機左搖桿移動及轉向，按住右下角朝前方射擊，放開停止。\n③ 1／2／3／4／5 或武器按鈕切槍。熱量滿需冷卻。\n④ B／建造：選塔型點「＋」；點既有塔升級／出售。\n⑤ C／全圖查看戰場；P／空白鍵暫停。E／EMP：周圍 8 單位傷害與減速，45 秒冷卻，無目標不消耗。\n人物不受傷，敵人只攻核心；貨櫃與塔等主要障礙會擋住玩家射擊。\n準備階段自動保存；戰鬥中重整回到最近部署。\n守住 10 波獲勝，第 5／10 波有巨型殭屍。第 4 波起裝甲感染者抵擋一般傷害 40%，電弧可無視裝甲。',
       '了解，進入戰場 ↗',
     ],
     won: [
@@ -401,7 +402,7 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
     $('overview').click();
   }
-  if (['1', '2', '3', '4'].includes(e.key)) changeWeapon(['pulse', 'plasma', 'cryo', 'arc'][Number(e.key) - 1]);
+  if (['1', '2', '3', '4', '5'].includes(e.key)) changeWeapon(['pulse', 'plasma', 'cryo', 'arc','rail'][Number(e.key) - 1]);
   if (e.code === 'Space' || e.code === 'KeyP') {
     if (e.code === 'Space' && e.target.tagName === 'BUTTON') return;
     e.preventDefault();
@@ -414,6 +415,8 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Escape' && game.paused && !['won', 'lost'].includes(game.phase)) resume();
 });
 function updateUI() {
+  const boss=game.enemies.find(e=>e.type==='boss'&&e.hp>0);
+  $('boss-status').textContent=boss?`${game.map.newEnemies&&game.wave===10?'裂核者':'巨型感染者'} ${Math.ceil(boss.hp)} HP${boss.phaseTwo?' · 第二階段':''}`:'';
   const empLabel = game.empCooldown > 0 ? `EMP ${Math.ceil(game.empCooldown)}s` : 'EMP E';
   if ($('emp').textContent !== empLabel) $('emp').textContent = empLabel;
   $('emp').disabled = game.phase !== 'wave' || game.paused || game.empCooldown > 0;
@@ -453,6 +456,8 @@ function updateUI() {
 }
 function handleEvents() {
   for (const event of game.events.splice(0)) {
+    if(event.type==='dash-warning')toast('橘色預警：感染者即將衝刺！冰凍／EMP 可中斷。');
+    if(event.type==='boss-phase')toast('裂核者第二階段：即將召喚四名援軍！');
     if (event.type === 'emp') { view.emp(event); audio('arc'); toast(`EMP 命中 ${event.count} 隻敵人`); }
     if (event.type === 'shot') {
       view.shot(event);
@@ -673,6 +678,8 @@ loadAssets();
 window.deadzone = {
   project: (x, z, y = 0) => view.project(x, z, y),
   snapshot: () => ({
+    map:game.mapId,
+    sceneIntegrity:(()=>{const bad=[];view.scene.traverse(o=>{if((o.isMesh||o.isLine||o.isPoints)&&!o.geometry)bad.push({name:o.name,type:o.type});});return bad;})(),
     player: { ...game.player },
     buildMode,
     overview: view.overview,
@@ -765,6 +772,7 @@ function offerCheckpoint() {
   if (!raw) return;
   try {
     pendingSave = restore(raw);
+    if(pendingSave.mapId!==game.mapId)throw Error('存檔地圖不相容，請使用匯入功能');
     $('checkpoint-summary').textContent =
       '第 ' +
       (pendingSave.wave + 1) +
@@ -819,6 +827,7 @@ $('new-game').onclick = () => {
 const saveTransfer = setupSaveTransfer({
   getGame: () => game,
   applyGame: (next) => {
+    if(next.mapId!==game.mapId){const url=new URL(location.href);url.searchParams.set('map',next.mapId);location.assign(url);return;}
     view.reset(); Object.assign(game, next);
     game.paused = true; game.aimAssist = settings.aimAssist;
     selectedTower = null; pendingSave = null; resumeChecked = true;
@@ -841,7 +850,7 @@ function drawMinimap() {
   ctx.strokeStyle = '#7a8b67';
   ctx.lineWidth = 5;
   ctx.beginPath();
-  PATH.forEach((p, i) => (i ? ctx.lineTo(x(p[0]), z(p[1])) : ctx.moveTo(x(p[0]), z(p[1]))));
+  game.map.path.forEach((p, i) => (i ? ctx.lineTo(x(p[0]), z(p[1])) : ctx.moveTo(x(p[0]), z(p[1]))));
   ctx.stroke();
   for (const t of game.towers) {
     ctx.fillStyle = '#d8f36a';
@@ -856,7 +865,19 @@ function drawMinimap() {
   ctx.arc(x(game.player.x), z(game.player.z), 3.5, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = '#d8f36a';
-  ctx.fillRect(x(18) - 3, z(4) - 3, 6, 6);
+  ctx.fillRect(x(game.map.core[0]) - 3, z(game.map.core[1]) - 3, 6, 6);
 }
+
+$('map-name').textContent=game.map.name;
+$('map-choice').value=game.mapId;
+$('change-map').onclick=()=>{
+ const id=$('map-choice').value;
+ if(id===game.mapId)return;
+ if(game.phase!=='ready'){toast('請完成目前波次，再於準備階段切換地圖');return;}
+ if(confirm(`前往「${MAPS[id].name}」？目前部署會保存，接著讀取該地圖的部署；首次進入會從第一波開始。`)){
+  persistReady();if(saveError){toast('部署保存失敗，請先匯出存檔');return;}
+  const url=new URL(location.href);url.searchParams.set('map',id);location.assign(url);
+ }
+};
 
 startUpdates(persistReady);

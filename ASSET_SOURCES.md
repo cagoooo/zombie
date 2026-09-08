@@ -81,3 +81,7 @@
 # v1.8.0 核心支援設施
 
 `public/models/support-pack/` 的護盾站、修復站為本專案原創程序幾何，使用原生 Blender MCP 建模／匯出，授權 CC0-1.0，無外部貼圖。來源腳本 `scripts/blender-build-support.py`；可編輯封存 `assets-source/blender/support-pack/`；SHA256 與大小見模型目錄 manifest.json。兩件合計 420 三角面、41,876 bytes。
+
+## v1.9.0 冷卻工廠原創素材
+
+`public/models/factory-pack/` 四件由本專案 Blender MCP 製作，CC0，無外部紋理。磁軌槍 96、衝刺感染者 120、護盾感染者 108、裂核者 120 三角面；總計 65,028 bytes。各件 SHA256 與動畫數見 manifest.json，可編輯來源位於 assets-source/blender/factory-pack/，生成與封存腳本位於 scripts/。

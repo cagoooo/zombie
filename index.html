@@ -142,7 +142,7 @@
           <div class="weapon-dock">
             <button data-weapon="pulse" class="selected">1 ⌁ 脈衝</button
             ><button data-weapon="plasma">2 ◎ 電漿</button
-            ><button data-weapon="cryo">3 ❄ 冰霜</button><button data-weapon="arc">4 ϟ 電弧</button><span id="compact-heat"></span>
+            ><button data-weapon="cryo">3 ❄ 冰霜</button><button data-weapon="arc">4 ϟ 電弧</button><button data-weapon="rail">5 ↗ 磁軌</button><span id="compact-heat"></span>
           </div>
           <section id="checkpoint-panel" class="overlay" hidden>
             <div class="dialog">
@@ -193,6 +193,10 @@
             <section class="dialog settings-dialog" aria-labelledby="settings-title">
               <span class="eyebrow">FIELD SETTINGS</span>
               <h2 id="settings-title">調整你的戰場</h2>
+              <label for="map-choice">戰場（兩圖分開保存）</label>
+              <select id="map-choice"><option value="outpost-1">能源前哨</option><option value="factory-2">冷卻工廠</option></select>
+              <p>冷卻工廠：不同路線與基座，第 3 波衝刺、第 6 波護盾感染者，第 10 波裂核者。敵人仍只攻核心。</p>
+              <button id="change-map" class="outline-button">前往選定地圖</button>
               <label
                 >畫質
                 <select id="quality">
@@ -251,6 +255,8 @@
               ◈ 核心完整度 <strong id="health-value">100<span>%</span></strong>
             </div>
             <div class="meter"><i id="health-bar"></i></div>
+            <p id="map-name">能源前哨</p>
+            <p id="boss-status" aria-live="polite"></p>
             <p id="core-state">能量核心穩定運作中</p>
             <p id="shield-value">護盾 0／0 · 清波額外修復 0</p>
           </section>
@@ -306,7 +312,7 @@
         <div class="arsenal-heading">
           <span class="eyebrow">YOUR LOADOUT</span>
           <h2>選擇你的火力</h2>
-          <span>鍵盤 <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> 切換</span>
+          <span>鍵盤 <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> <kbd>5</kbd> 切換</span>
         </div>
         <button class="weapon selected" data-weapon="pulse">
           <span class="weapon-key">01</span
@@ -355,6 +361,7 @@
           ><span class="equipped">已裝備</span>
         </button>
         <button class="weapon" data-weapon="arc"><span class="weapon-key">04</span><svg viewBox="0 0 180 70" aria-hidden="true"><path class="gun-body" d="M20 24h110v8h35v15h-70l-8 20H65l5-20H20z"/></svg><span class="weapon-copy"><strong>電弧抑制槍</strong><small>無視裝甲 <i>●</i> 範圍減速</small></span><span class="equipped">已裝備</span></button>
+        <button class="weapon" data-weapon="rail"><span class="weapon-key">05</span><svg viewBox="0 0 180 70" aria-hidden="true"></svg><span class="weapon-copy"><strong>磁軌狙擊槍</strong><small>直線穿透兩敵 <i>●</i> 次目標傷害 65%</small></span><span class="equipped">已裝備</span></button>
         <div class="heat-status">
           <div><span>武器熱量</span><b id="heat-label">0%</b></div>
           <div class="meter"><i id="heat-bar"></i></div>

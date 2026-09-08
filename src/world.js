@@ -1,32 +1,22 @@
-// Shared gameplay bounds; foliage/rubble are decorative and traversable.
-export const BOUNDS = { x: 21, z: 11.6 };
-export const BLOCKERS = [
-  { x: -5, z: -10, w: 3.1, d: 1.55 },
-  { x: 15, z: -7, w: 3, d: 2 },
-  { x: -18, z: 7, w: 1.65, d: 1.65 },
-  { x: 18, z: 4, w: 1.7, d: 1.7 },
-  { x: -17, z: 3, w: 0.5, d: 0.5 },
-  { x: -18.2, z: 3.6, w: 0.5, d: 0.5 },
-  { x: 10, z: 9, w: 0.5, d: 0.5 },
-  { x: -17, z: -8, w: 1.1, d: 0.35 },
-  { x: 1, z: 8, w: 0.35, d: 1.1 },
-];
-export function obstacles(towers = []) {
-  return [...BLOCKERS, ...towers.map((t) => ({ x: t.x, z: t.z, w: 0.8, d: 0.8 }))];
+import {getMap} from './maps.js';
+export const BOUNDS=getMap().bounds;
+export const BLOCKERS=getMap().blockers;
+export function obstacles(towers = [], map=getMap()) {
+  return [...map.blockers, ...towers.map((t) => ({ x: t.x, z: t.z, w: 0.8, d: 0.8 }))];
 }
-export function canStand(x, z, towers = []) {
+export function canStand(x, z, towers = [], map=getMap()) {
   const r = 0.38;
   return (
     Number.isFinite(x) &&
     Number.isFinite(z) &&
-    Math.abs(x) <= BOUNDS.x - r &&
-    Math.abs(z) <= BOUNDS.z - r &&
-    !obstacles(towers).some((b) => Math.abs(x - b.x) < b.w + r && Math.abs(z - b.z) < b.d + r)
+    Math.abs(x) <= map.bounds.x - r &&
+    Math.abs(z) <= map.bounds.z - r &&
+    !obstacles(towers,map).some((b) => Math.abs(x - b.x) < b.w + r && Math.abs(z - b.z) < b.d + r)
   );
 }
-export function rayStop(from, to, towers = []) {
+export function rayStop(from, to, towers = [], map=getMap()) {
   let stop = 1;
-  for (const b of obstacles(towers)) {
+  for (const b of obstacles(towers,map)) {
     let enter = 0,
       leave = 1;
     for (const [axis, r] of [

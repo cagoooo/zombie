@@ -1,3 +1,4 @@
+import {getMap,pointOnMap} from './maps.js';
 import { canStand, rayStop } from './world.js';
 export const EMP = { radius: 8, damage: 45, slow: 2.5, cooldown: 45 };
 export const TARGET_STRATEGIES = { first: '最前方', nearest: '最近', strongest: '最強' };
@@ -25,27 +26,10 @@ export function towerTarget(t, enemies) {
     return priority || b.distance - a.distance || a.id - b.id;
   })[0];
 }
-export const PATH = [
-  [-20, -5],
-  [-11, -5],
-  [-11, 4],
-  [-2, 4],
-  [-2, -5],
-  [8, -5],
-  [8, 4],
-  [18, 4],
-];
-export const PADS = [
-  [-15, 0],
-  [-7, 0],
-  [-6, 8],
-  [2, 0],
-  [4, -9],
-  [12, -1],
-  [13, 8],
-  [-15, -9],
-];
+export const PATH=getMap().path;
+export const PADS=getMap().pads;
 export const WEAPONS = {
+ rail: { name:'磁軌狙擊槍',color:0x69d9ff,damage:95,cooldown:1.1,heat:32,radius:0,slow:0,range:30,pierce:true },
  arc: { name: '電弧抑制槍', color: 0xb66aff, damage: 32, cooldown: .45, heat: 18, radius: 1.8, slow: .8, range: 21, disrupt: true },
   pulse: {
     name: '脈衝步槍',
@@ -113,26 +97,14 @@ export const TOWERS = {
     slow: 0,
   },
 };
-const segments = PATH.slice(1).map((p, i) => Math.hypot(p[0] - PATH[i][0], p[1] - PATH[i][1]));
-export const PATH_LENGTH = segments.reduce((a, b) => a + b, 0);
-export function pathPoint(distance) {
-  for (let i = 0; i < segments.length; i++) {
-    if (distance <= segments[i]) {
-      const t = Math.max(0, distance / segments[i]);
-      return {
-        x: PATH[i][0] + (PATH[i + 1][0] - PATH[i][0]) * t,
-        z: PATH[i][1] + (PATH[i + 1][1] - PATH[i][1]) * t,
-        angle: Math.atan2(PATH[i + 1][0] - PATH[i][0], PATH[i + 1][1] - PATH[i][1]),
-      };
-    }
-    distance -= segments[i];
-  }
-  return { x: 18, z: 4, angle: Math.PI / 2 };
-}
+export const PATH_LENGTH=getMap().length;
+export function pathPoint(distance){return pointOnMap(distance);}
 export class Game {
-  constructor() {
+  constructor(mapId='outpost-1') {
+    this.mapId=mapId; getMap(mapId);
     this.reset();
   }
+  get map(){return getMap(this.mapId);}
   reset() {
     this.phase = 'ready';
     this.paused = false;
@@ -155,7 +127,7 @@ export class Game {
     this.spawnIndex = 0;
     this.id = 0;
     this.time = 0;
-    this.player = { x: 4, z: 9.5, angle: Math.PI, moving: false, sprinting: false };
+    this.player = { ...this.map.spawn, angle: Math.PI, moving: false, sprinting: false };
     this.stepTime = 0;
   }
   move(x, z, dt, sprint = false) {
@@ -169,8 +141,8 @@ export class Game {
       dz = (z / Math.max(1, len)) * distance;
     const oldX = this.player.x,
       oldZ = this.player.z;
-    if (canStand(oldX + dx, oldZ, this.towers)) this.player.x += dx;
-    if (canStand(this.player.x, oldZ + dz, this.towers)) this.player.z += dz;
+    if (canStand(oldX + dx, oldZ, this.towers,this.map)) this.player.x += dx;
+    if (canStand(this.player.x, oldZ + dz, this.towers,this.map)) this.player.z += dz;
     this.player.moving = Math.hypot(this.player.x - oldX, this.player.z - oldZ) > 0.001;
     this.player.sprinting = sprint;
     if (this.player.moving) {
@@ -188,7 +160,7 @@ export class Game {
     if (this.phase !== 'ready' || this.paused) return false;
     this.wave++;
     this.phase = 'wave';
-    this.spawnLeft = 8 + this.wave * 3;
+    this.spawnLeft = this.map.waves[this.wave-1];
     this.spawnIndex = 0;
     this.spawnTimer = 0.3;
     this.emit('wave', { wave: this.wave });
@@ -199,12 +171,12 @@ export class Game {
       this.paused ||
       ['won', 'lost'].includes(this.phase) ||
       !TOWERS[type] ||
-      !PADS[pad] ||
+      !this.map.pads[pad] ||
       this.towers.some((t) => t.pad === pad)
     )
       return false;
     const def = TOWERS[type];
-    if (Math.hypot(PADS[pad][0] - this.player.x, PADS[pad][1] - this.player.z) < 1.5) return false;
+    if (Math.hypot(this.map.pads[pad][0] - this.player.x, this.map.pads[pad][1] - this.player.z) < 1.5) return false;
     if (this.credits < def.cost) return false;
     this.credits -= def.cost;
     const t = {
@@ -215,8 +187,8 @@ export class Game {
       strategy: 'first',
       spent: def.cost,
       cooldown: 0,
-      x: PADS[pad][0],
-      z: PADS[pad][1],
+      x: this.map.pads[pad][0],
+      z: this.map.pads[pad][1],
     };
     this.towers.push(t);
     this.recalculateShield(true);
@@ -265,35 +237,43 @@ export class Game {
     this.weapon = type;
     return true;
   }
-  spawn() {
+  spawn(override=null, distance=0, consume=true) {
     const i = this.spawnIndex++;
-    const type =
+    const type = override ?? (
       this.wave % 5 === 0 && this.spawnLeft === 1
         ? 'boss'
+        : this.map.newEnemies && this.wave >= 6 && i % 7 === 4 ? 'shielded'
+        : this.map.newEnemies && this.wave >= 3 && i % 6 === 0 ? 'dasher'
         : this.wave >= 4 && i % 6 === 2 ? 'armored' : this.wave >= 3 && i % 5 === 3
           ? 'tank'
           : this.wave >= 2 && i % 3 === 1
             ? 'runner'
-            : 'basic';
+            : 'basic');
     const factor = 1 + (this.wave - 1) * 0.19;
-    const hp = { armored: 110, basic: 64, runner: 44, tank: 190, boss: 1000 }[type] * factor;
+    const hp = { dasher:70, shielded:90, armored: 110, basic: 64, runner: 44, tank: 190, boss: 1000 }[type] * factor;
     const enemy = {
       id: ++this.id,
       type,
       hp,
       maxHp: hp,
-      speed: { armored: 1.2, basic: 1.55, runner: 2.65, tank: 1.1, boss: 0.9 }[type] * (1 + this.wave * 0.025),
-      distance: 0,
+      speed: { dasher:1.8, shielded:1.25, armored: 1.2, basic: 1.55, runner: 2.65, tank: 1.1, boss: 0.9 }[type] * (1 + this.wave * 0.025),
+      distance,
+      shield:type==='shielded'?60*factor:0, maxShield:type==='shielded'?60*factor:0,
+      dashState:0,dashTimer:0,phaseTwo:false,summonTimer:0,summoned:false,
       slow: 0,
-      reward: { armored: 20, basic: 12, runner: 13, tank: 25, boss: 130 }[type],
-      ...pathPoint(0),
+      reward: { dasher:16, shielded:22, armored: 20, basic: 12, runner: 13, tank: 25, boss: 130 }[type],
+      ...pointOnMap(distance,this.map),
     };
     this.enemies.push(enemy);
-    this.spawnLeft--;
+    if(consume)this.spawnLeft--;
     this.emit('spawn', { enemy });
   }
   damage(enemy, amount, slow = 0, disrupt = false) {
     if (enemy.hp <= 0) return;
+    if(enemy.shield>0){
+      const shieldDamage=amount*(disrupt?2:1),absorbed=Math.min(enemy.shield,shieldDamage);
+      enemy.shield-=absorbed;amount=Math.max(0,amount-absorbed/(disrupt?2:1));
+    }
     amount *= enemy.type === 'armored' && !disrupt ? .6 : 1;
     enemy.hp -= amount;
     enemy.slow = Math.max(enemy.slow, slow);
@@ -309,7 +289,7 @@ export class Game {
       if (
         e.hp > 0 &&
         (e === target ||
-          (def.radius > 0 && Math.hypot(e.x - target.x, e.z - target.z) <= def.radius && rayStop(target,e,this.towers)>=.999))
+          (def.radius > 0 && Math.hypot(e.x - target.x, e.z - target.z) <= def.radius && rayStop(target,e,this.towers,this.map)>=.999))
       )
         this.damage(e, def.damage * multiplier * (e.type === 'armored' ? def.armored ?? 1 : 1), def.slow, def.disrupt);
     }
@@ -318,12 +298,13 @@ export class Game {
     if (!point || !Number.isFinite(point.x + point.z)) return false;
     if (this.phase !== 'wave' || this.paused || this.cooldown > 0 || this.overheated) return false;
     const def = WEAPONS[this.weapon];
+    directional = directional || !!def.pierce;
     const from = { x: this.player.x, z: this.player.z, y: 1.4 };
     const length = Math.hypot(point.x - from.x, point.z - from.z);
     const reach = Math.min(1, def.range / Math.max(length, 0.001));
     point = { x: from.x + (point.x - from.x) * reach, z: from.z + (point.z - from.z) * reach };
     this.player.angle = Math.atan2(point.x - from.x, point.z - from.z);
-    const stop = rayStop(from, point, this.towers);
+    const stop = rayStop(from, point, this.towers,this.map);
     const dx = Math.sin(this.player.angle), dz = Math.cos(this.player.angle);
     const forward = e => (e.x-from.x)*dx+(e.z-from.z)*dz;
     const aimDistance = e => directional ? Math.abs((e.x-from.x)*dz-(e.z-from.z)*dx) : Math.hypot(e.x-point.x,e.z-point.z);
@@ -338,20 +319,25 @@ export class Game {
         (e) =>
           e.hp > 0 &&
           Math.hypot(e.x - from.x, e.z - from.z) <= def.range &&
-          rayStop(from, e, this.towers) >= 0.999 &&
+          rayStop(from, e, this.towers,this.map) >= 0.999 &&
           (!directional || forward(e) > 0) &&
           aimDistance(e) <
-            (this.aimAssist ? 2.2 : e.type === 'boss' ? 1.4 : 0.7),
+            (def.pierce ? .9 : this.aimAssist ? 2.2 : e.type === 'boss' ? 1.4 : 0.7),
       )
       .sort(
         (a, b) =>
           directional ? forward(a)-forward(b) : Math.hypot(a.x - point.x, a.z - point.z) - Math.hypot(b.x - point.x, b.z - point.z),
       )[0];
-    if (target) this.hit(target, def);
+    let beamTarget = target;
+    if (target && def.pierce) {
+      const victims=this.enemies.filter(e=>e.hp>0 && forward(e)>0 && forward(e)<=def.range && Math.abs((e.x-from.x)*dz-(e.z-from.z)*dx)<.9 && rayStop(from,e,this.towers,this.map)>=.999).sort((a,b)=>forward(a)-forward(b)).slice(0,2);
+      beamTarget = victims.at(-1) || target;
+      victims.forEach((e,i)=>this.damage(e,def.damage*(i===0?1:.65)));
+    } else if (target) this.hit(target, def);
     this.emit('shot', {
       from,
-      to: target
-        ? { x: target.x, z: target.z, y: 1.1 }
+      to: beamTarget
+        ? { x: beamTarget.x, z: beamTarget.z, y: 1.1 }
         : { x: from.x + (point.x - from.x) * stop, z: from.z + (point.z - from.z) * stop, y: 1.1 },
       weapon: this.weapon,
       hit: !!target,
@@ -384,11 +370,22 @@ export class Game {
     for (const e of this.enemies) {
       if (e.hp <= 0) continue;
       e.slow = Math.max(0, e.slow - dt);
-      e.distance += e.speed * dt * (e.slow > 0 ? 0.42 : 1);
-      Object.assign(e, pathPoint(e.distance));
-      if (e.distance >= PATH_LENGTH) {
+      if(e.type==='dasher'){
+        if(e.dashState===0 && Math.hypot(e.x-this.player.x,e.z-this.player.z)<12){e.dashState=1;e.dashTimer=.8;this.emit('dash-warning');}
+        if(e.dashState===1||e.dashState===2){
+          if(e.slow>0){e.dashState=3;e.dashTimer=0;}
+          else {e.dashTimer-=dt;if(e.dashTimer<=0){e.dashState++;e.dashTimer=1.2;}}
+        }
+      }
+      if(this.map.newEnemies && this.wave===10 && e.type==='boss'){
+        if(!e.phaseTwo && e.hp<=e.maxHp*.5){e.phaseTwo=true;e.summonTimer=1.2;this.emit('boss-phase');}
+        if(e.phaseTwo&&!e.summoned){e.summonTimer-=dt;if(e.summonTimer<=0){e.summoned=true;for(let i=0;i<4;i++)this.spawn('dasher',Math.max(0,e.distance-3-i),false);}}
+      }
+      e.distance += e.speed * dt * (e.slow > 0 ? 0.42 : 1) * (e.dashState===2?2.5:1) * (e.phaseTwo?1.2:1);
+      Object.assign(e, pointOnMap(e.distance,this.map));
+      if (e.distance >= this.map.length) {
         e.hp = 0;
-        const damage = { armored: 12, boss: 35, tank: 14, runner: 7, basic: 8 }[e.type];
+        const damage = { dasher:9,shielded:10,armored: 12, boss: 35, tank: 14, runner: 7, basic: 8 }[e.type];
         const absorbed = Math.min(this.shield,damage);
         this.shield -= absorbed;
         this.health = Math.max(0,this.health-damage+absorbed);

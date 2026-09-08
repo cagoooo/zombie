@@ -541,7 +541,7 @@ h1 {
 }
 .arsenal {
   display: grid;
-  grid-template-columns: 150px repeat(4, minmax(0, 1fr)) 174px;
+  grid-template-columns: 150px repeat(5, minmax(0, 1fr)) 174px;
   gap: 12px;
   margin: 22px 24px 20px;
   align-items: center;
@@ -733,7 +733,7 @@ kbd {
     padding: 0 20px;
   }
   .arsenal {
-    grid-template-columns: 130px repeat(4, minmax(0, 1fr));
+    grid-template-columns: 130px repeat(5, minmax(0, 1fr));
     margin: 16px;
   }
   .heat-status {

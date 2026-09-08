@@ -1,11 +1,13 @@
 import { Game, TOWERS, PADS, WEAPONS, TARGET_STRATEGIES, BRANCHES } from './game.js';
 import { canStand } from './world.js';
+import {MAPS,getMap} from './maps.js';
 export const SAVE_KEY = 'deadzone-checkpoint-v1';
+export const saveKey = mapId => mapId==='outpost-1'?SAVE_KEY:`${SAVE_KEY}-${mapId}`;
 export function checkpoint(game) {
   if (game.phase !== 'ready') return null;
   return {
     version: 1,
-    map: 'outpost-1',
+    map: game.mapId,
     wave: game.wave,
     health: game.health,
     shield: game.shield,
@@ -23,18 +25,18 @@ export function restore(raw) {
   if (
     !data ||
     data.version !== 1 ||
-    data.map !== 'outpost-1' ||
+    !Object.hasOwn(MAPS,data.map) ||
     !integer(data.wave, 0, 9) ||
     !integer(data.health, 1, 100) ||
     !integer(data.credits, 0, 100000) ||
-    !integer(data.kills, 0, 245) ||
+    !integer(data.kills, 0, getMap(data.map).maxKills) ||
     !Object.hasOwn(WEAPONS, data.weapon) ||
     (data.empCooldown !== undefined && (!Number.isFinite(data.empCooldown) || data.empCooldown < 0 || data.empCooldown > 45)) ||
     !Array.isArray(data.towers) ||
     data.towers.length > 8
   )
     throw Error('存檔版本或內容不相容');
-  const game = new Game(),
+  const game = new Game(data.map),
     pads = new Set();
   game.wave = data.wave;
   game.health = data.health;
@@ -63,13 +65,13 @@ export function restore(raw) {
         );
     if (t.spent !== spent) throw Error('防禦塔投入數值不符');
     pads.add(t.pad);
-    game.towers.push({ ...t, ...(t.level === 3 ? {branch:t.branch ?? 'legacy'} : {}), strategy: t.strategy ?? 'first', id: ++game.id, cooldown: 0, x: PADS[t.pad][0], z: PADS[t.pad][1] });
+    game.towers.push({ ...t, ...(t.level === 3 ? {branch:t.branch ?? 'legacy'} : {}), strategy: t.strategy ?? 'first', id: ++game.id, cooldown: 0, x: game.map.pads[t.pad][0], z: game.map.pads[t.pad][1] });
   }
   if (data.shield !== undefined && !integer(data.shield,0,game.shieldMax)) throw Error('護盾數值不合法');
   game.shield = data.shield ?? game.shieldMax;
   if (
     !data.player ||
-    !canStand(data.player.x, data.player.z, game.towers) ||
+    !canStand(data.player.x, data.player.z, game.towers,game.map) ||
     !Number.isFinite(data.player.angle)
   )
     throw Error('角色位置不合法');

@@ -1,4 +1,4 @@
-import { checkpoint, restore, SAVE_KEY } from './save.js';
+import { checkpoint, restore, saveKey } from './save.js';
 export const BACKUP_KEY = 'deadzone-before-import-v1';
 export const MAX_SAVE_BYTES = 64 * 1024;
 
@@ -28,16 +28,16 @@ export function setupSaveTransfer({ getGame, applyGame }) {
   }
   function preview(game) {
     pending = game;
-    $('import-summary').textContent = `能源前哨 · 第 ${game.wave + 1} 波準備 · 核心 ${game.health}% · 護盾 ${game.shield}／${game.shieldMax} · 能源 ${game.credits} · ${game.towers.length} 座塔／設施 · EMP 冷卻 ${Math.ceil(game.empCooldown)} 秒。`;
+    $('import-summary').textContent = `${game.map.name} · 第 ${game.wave + 1} 波準備 · 核心 ${game.health}% · 護盾 ${game.shield}／${game.shieldMax} · 能源 ${game.credits} · ${game.towers.length} 座塔／設施 · EMP 冷卻 ${Math.ceil(game.empCooldown)} 秒。${game.mapId!==getGame().mapId?'確認後會重新載入對應地圖。':''}`;
     $('import-preview').hidden = false;
     status('尚未替換戰局。確認後會先備份目前部署；取消則保留現況。');
   }
   $('export-save').onclick = () => {
     try {
       const game = getGame();
-      const source = game.phase === 'ready' ? game : restore(localStorage.getItem(SAVE_KEY));
+      const source = game.phase === 'ready' ? game : restore(localStorage.getItem(saveKey(game.mapId)));
       const url = URL.createObjectURL(new Blob([writeSaveFile(source)], { type: 'application/json' }));
-      const link = document.createElement('a'); link.href = url; link.download = `deadzone-wave-${source.wave + 1}.json`;
+      const link = document.createElement('a'); link.href = url; link.download = `deadzone-${source.mapId}-wave-${source.wave + 1}.json`;
       document.body.append(link); link.click(); link.remove();
       setTimeout(() => URL.revokeObjectURL(url), 10000);
       status(game.phase === 'ready' ? '已送出存檔下載，請查看瀏覽器下載清單。' : '已送出最近準備存檔下載，不包含當前波內進度；請查看瀏覽器下載清單。');
@@ -70,7 +70,8 @@ export function setupSaveTransfer({ getGame, applyGame }) {
       const next = pending;
       const old = JSON.stringify(checkpoint(getGame()));
       localStorage.setItem(BACKUP_KEY, old);
-      localStorage.setItem(SAVE_KEY, JSON.stringify(checkpoint(next)));
+      if(next.mapId!==getGame().mapId)localStorage.setItem(saveKey(getGame().mapId),old);
+      localStorage.setItem(saveKey(next.mapId), JSON.stringify(checkpoint(next)));
       applyGame(next);
       cancel(); status('匯入完成；已保留替換前部署，可按「還原匯入前備份」。');
     } catch (error) { status(`匯入未完成：${error.message}`); }

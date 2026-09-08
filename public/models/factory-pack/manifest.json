@@ -1,0 +1,85 @@
+[
+  {
+    "name": "rail-rifle",
+    "bytes": 13316,
+    "triangles": 96,
+    "sha256": "ff80f7b6b409589f33c8a938b23c8643590100c56bf5a9114c2f7bf813eedf96",
+    "animations": 0,
+    "scenes": 1,
+    "nodes": [
+      "Grip",
+      "Handle",
+      "IonStrip",
+      "IonStrip.001",
+      "LongRail",
+      "LongRail.001",
+      "Muzzle",
+      "Receiver",
+      "Scope",
+      "Stock"
+    ],
+    "license": "CC0-1.0"
+  },
+  {
+    "name": "dash-infected",
+    "bytes": 17640,
+    "triangles": 120,
+    "sha256": "af7dbdabf99eaa1fffe15c2fa120d75801283b297c36739e9f57c45b9a8bca9c",
+    "animations": 2,
+    "scenes": 1,
+    "nodes": [
+      "AnimatedLeg",
+      "AnimatedLeg.001",
+      "Arm",
+      "Arm.001",
+      "Chest",
+      "EnergyCore",
+      "Eyes",
+      "Head",
+      "SprintFin",
+      "SprintFin.001"
+    ],
+    "license": "CC0-1.0"
+  },
+  {
+    "name": "shield-infected",
+    "bytes": 16292,
+    "triangles": 108,
+    "sha256": "aa4dcd2a29be409484c69b4c56445f2de133d520cf1b8fefed3e363559df1137",
+    "animations": 2,
+    "scenes": 1,
+    "nodes": [
+      "AnimatedLeg.002",
+      "AnimatedLeg.003",
+      "Arm.002",
+      "Arm.003",
+      "Chest.001",
+      "EnergyCore.001",
+      "Eyes.001",
+      "Head.001",
+      "ShieldEmitter"
+    ],
+    "license": "CC0-1.0"
+  },
+  {
+    "name": "rift-boss",
+    "bytes": 17780,
+    "triangles": 120,
+    "sha256": "fbf7b734432512610d2d31034eb5ffede1ec3f4bac77b0a4e71cb0e6e2c9954f",
+    "animations": 2,
+    "scenes": 1,
+    "nodes": [
+      "AnimatedLeg.004",
+      "AnimatedLeg.005",
+      "Arm.004",
+      "Arm.005",
+      "Chest.002",
+      "EnergyCore.002",
+      "Eyes.002",
+      "Head.002",
+      "ShoulderPlate",
+      "ShoulderPlate.001"
+    ],
+    "license": "CC0-1.0"
+  }
+]

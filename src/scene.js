@@ -1,3 +1,4 @@
+import {getMap} from './maps.js';
 import * as THREE from 'three';
 import { AssetLibrary } from './assets.js';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
@@ -13,7 +14,8 @@ const palette = {
   lime: 0xd8f36a,
 };
 export class Battlefield {
-  constructor(canvas) {
+  constructor(canvas,map=getMap()) {
+    this.map=map;
     this.canvas = canvas;
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x26362e);
@@ -125,16 +127,16 @@ export class Battlefield {
   }
   buildWorld() {
     this.box(45, 1.6, 28, palette.dark, 0, -1, 0);
-    this.box(44, 0.35, 27, palette.ground, 0, -0.1, 0);
+    this.box(44, 0.35, 27, this.map.newEnemies ? 0x344953 : palette.ground, 0, -0.1, 0);
     const grid = new THREE.GridHelper(44, 22, 0x718160, 0x607050);
     grid.material.transparent = true;
     grid.material.opacity = 0.13;
     grid.position.y = 0.085;
     grid.scale.z = 27 / 44;
     this.scene.add(grid);
-    for (let i = 0; i < PATH.length - 1; i++) {
-      const a = PATH[i],
-        b = PATH[i + 1],
+    for (let i = 0; i < this.map.path.length - 1; i++) {
+      const a = this.map.path[i],
+        b = this.map.path[i + 1],
         dx = b[0] - a[0],
         dz = b[1] - a[1];
       const x = (a[0] + b[0]) / 2,
@@ -157,7 +159,7 @@ export class Battlefield {
         );
     }
     for (let i = 0; i < 8; i++) {
-      const [x, z] = PADS[i];
+      const [x, z] = this.map.pads[i];
       const g = new THREE.Group();
       g.position.set(x, 0, z);
       this.scene.add(g);
@@ -172,7 +174,7 @@ export class Battlefield {
     }
     // Hand-built energy core, replaceable with any glTF base skin.
     this.core = new THREE.Group();
-    this.core.position.set(18, 0, 4);
+    this.core.position.set(this.map.core[0], 0, this.map.core[1]);
     this.scene.add(this.core);
     this.cylinder(2.5, 0.55, 0x283b34, 0, 0.3, 0, this.core, 2.8, 6);
     this.cylinder(1.8, 0.3, 0x7e8a66, 0, 0.7, 0, this.core, 2.1, 6);
@@ -193,7 +195,7 @@ export class Battlefield {
     }
     this.cylinder(1.55, 0.25, 0x899575, 0, 3.85, 0, this.core, 1.5, 6);
     this.cylinder(0.65, 0.3, palette.lime, 0, 4.05, 0, this.core, 0.8, 6);
-    this.coreRing = this.ring(3.1, palette.lime, 18, 4);
+    this.coreRing = this.ring(3.1, palette.lime, ...this.map.core);
     this.scene.add(new THREE.PointLight(0xd8f36a, 14, 10));
     const portal = new THREE.Group();
     portal.position.set(-20, 0, -5);
@@ -212,8 +214,8 @@ export class Battlefield {
     for (let i = 0; i < 130; i++) {
       const x = random() * 42 - 21,
         z = random() * 25 - 12.5;
-      const nearPath = PATH.slice(1).some((b, j) => {
-        const a = PATH[j];
+      const nearPath = this.map.path.slice(1).some((b, j) => {
+        const a = this.map.path[j];
         return (
           x >= Math.min(a[0], b[0]) - 2.1 &&
           x <= Math.max(a[0], b[0]) + 2.1 &&
@@ -223,7 +225,7 @@ export class Battlefield {
       });
       if (
         nearPath ||
-        PADS.some((p) => Math.hypot(p[0] - x, p[1] - z) < 2) ||
+        this.map.pads.some((p) => Math.hypot(p[0] - x, p[1] - z) < 2) ||
         Math.hypot(x - 18, z - 4) < 4
       )
         continue;
@@ -293,17 +295,7 @@ export class Battlefield {
     this.models = result.models;
     this.assetErrors = result.failures.flatMap((f) => f.files);
     this.assetProps.clear();
-    for (const [name, x, z, height, rotation] of [
-      ['Container_Green', -5, -10, 2.6, 0.15],
-      ['Container_Green', 15, -7, 2.4, -0.4],
-      ['WaterTower', -18, 7, 5.5, 0],
-      ['Barrel', -17, 3, 1.3, 0],
-      ['Barrel', -18.2, 3.6, 1.3, 0],
-      ['Barrel', 10, 9, 1.3, 0],
-      ['TrafficBarrier_1', -17, -8, 1, 0],
-      ['TrafficBarrier_1', 1, 8, 1, 1.57],
-    ]) {
-      const model = this.makeAsset(name, height);
+    for (const [name, x, z, height, rotation] of this.map.props) {      const model = this.makeAsset(name, height);
       if (model) {
         model.root.position.set(x, 0, z);
         model.root.rotation.y = rotation;
@@ -324,6 +316,7 @@ export class Battlefield {
       ['plasma', 'blaster-j'],
       ['cryo', 'blaster-o'],
       ['arc', 'arc-rifle'],
+      ['rail','rail-rifle'],
     ]) {
       const source = this.models[name];
       if (!source) continue;
@@ -515,6 +508,7 @@ export class Battlefield {
       pulse: this.aimRing.geometry,
       plasma: new THREE.RingGeometry(1.02, 1.1, 6),
       cryo: new THREE.RingGeometry(0.55, 0.62, 4),
+      rail: new THREE.RingGeometry(0.35, 0.42, 16),
     };
     this.aimRing.geometry = this.aimShapes[type];
     if (!this.weaponSkins) return;
@@ -580,7 +574,7 @@ export class Battlefield {
   }
   makeZombie(type) {
     const model = this.makeAsset(
-      type === 'armored'
+      type==='dasher' ? 'dash-infected' : type==='shielded' ? 'shield-infected' : type==='boss' && this.map.newEnemies ? 'rift-boss' : type === 'armored'
         ? 'armored-infected'
         : type === 'tank' || type === 'boss'
         ? 'Zombie_Chubby'
@@ -594,7 +588,7 @@ export class Battlefield {
       const clip =
         THREE.AnimationClip.findByName(model.animations, type === 'runner' ? 'Run' : 'Walk') ||
         model.animations[0];
-      if (type === 'armored') model.animations.forEach(c => model.mixer.clipAction(c).play());
+      if (['armored','dasher','shielded'].includes(type)||(type==='boss'&&this.map.newEnemies)) model.animations.forEach(c => model.mixer.clipAction(c).play());
       else if (clip) model.mixer.clipAction(clip).play();
       return model;
     }
@@ -688,7 +682,7 @@ export class Battlefield {
     const rect = this.canvas.getBoundingClientRect();
     let closest = null,
       best = Infinity;
-    PADS.forEach((p, i) => {
+    this.map.pads.forEach((p, i) => {
       const screen = new THREE.Vector3(p[0], 0.4, p[1]).project(this.camera);
       const distance = Math.hypot(
         ((screen.x + 1) / 2) * rect.width + rect.left - clientX,
@@ -800,6 +794,7 @@ export class Battlefield {
     if (event.type !== 'kill') return;
     this.enemyMeshes.delete(event.enemy.id);
     model.bar.visible = model.barBg.visible = false;
+    if(model.shieldBar)model.shieldBar.visible=false;
     model.mixer?.stopAllAction();
     const clip = model.animations && THREE.AnimationClip.findByName(model.animations, 'Death');
     if (clip && model.mixer) {
@@ -819,7 +814,7 @@ export class Battlefield {
     model.object?.traverse((n) => {
       if (n.isSkinnedMesh) n.skeleton.dispose();
     });
-    for (const part of [model.bar, model.barBg]) {
+    for (const part of [model.bar, model.barBg,model.shieldBar].filter(Boolean)) {
       part.geometry.dispose();
       part.material.dispose();
     }
@@ -898,6 +893,10 @@ export class Battlefield {
         mesh.root.add(bg, bar);
         mesh.bar = bar;
         mesh.barBg = bg;
+        if(e.maxShield>0){
+          mesh.shieldBar=new THREE.Mesh(new THREE.PlaneGeometry(1,.09),new THREE.MeshBasicMaterial({color:0x69d9ff,depthTest:false}));
+          mesh.shieldBar.position.y=bar.position.y+.18;mesh.shieldBar.renderOrder=3;mesh.root.add(mesh.shieldBar);
+        }
         this.enemyMeshes.set(e.id, mesh);
         this.scene.add(mesh.root);
       }
@@ -911,8 +910,9 @@ export class Battlefield {
       const q = this.camera.quaternion.clone().premultiply(mesh.root.quaternion.clone().invert());
       mesh.bar.quaternion.copy(q);
       mesh.barBg.quaternion.copy(q);
+      if(mesh.shieldBar){mesh.shieldBar.visible=e.shield>0;mesh.shieldBar.scale.x=e.shield/e.maxShield;mesh.shieldBar.quaternion.copy(q);}
       mesh.bar.material.color.setHex(
-        e.slow > 0 ? 0x8fe6f3 : e.type === 'boss' ? 0xff9567 : 0xd8f36a,
+        e.dashState===1||e.phaseTwo ? 0xff5b31 : e.slow > 0 ? 0x8fe6f3 : e.type === 'boss' ? 0xff9567 : 0xd8f36a,
       );
     }
     for (const t of game.towers) {
