@@ -687,6 +687,7 @@ window.deadzone = {
   snapshot: () => ({
     map:game.mapId,
     report:structuredClone(game.report),
+    waveHistory:structuredClone(game.waveHistory),
     sceneIntegrity:(()=>{const bad=[];view.scene.traverse(o=>{if((o.isMesh||o.isLine||o.isPoints)&&!o.geometry)bad.push({name:o.name,type:o.type});});return bad;})(),
     player: { ...game.player },
     buildMode,

@@ -193,6 +193,10 @@
               <h2 id="dialog-title">戰場已暫停</h2>
               <p id="dialog-body"></p>
               <section id="battle-report" hidden aria-label="本局戰況統計">
+                <label for="report-wave">查看戰報</label>
+                <select id="report-wave"><option value="all">本局累計</option></select>
+                <p id="report-economy"></p>
+                <h3>戰術建議</h3><ul id="report-advice"></ul>
                 <h3>戰況統計</h3><p id="report-scope"></p><p id="report-summary"></p>
                 <table><thead><tr><th>來源</th><th>扣血</th><th>破盾</th><th>擊退</th></tr></thead><tbody id="report-rows"></tbody></table>
                 <p id="report-empty">尚無有效命中紀錄。</p>

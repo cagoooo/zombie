@@ -1,3 +1,4 @@
+import {restoreWaveHistory} from './wave-report.js';
 import {restoreReport} from './battle-report.js';
 import { Game, TOWERS, PADS, WEAPONS, TARGET_STRATEGIES, BRANCHES } from './game.js';
 import { canStand } from './world.js';
@@ -17,6 +18,7 @@ export function checkpoint(game) {
     weapon: game.weapon,
     empCooldown: game.empCooldown,
     report: structuredClone(game.report),
+    waveHistory: structuredClone(game.waveHistory),
     player: { x: game.player.x, z: game.player.z, angle: game.player.angle },
     towers: game.towers.map((t) => ({ pad: t.pad, type: t.type, level: t.level, spent: t.spent, strategy: t.strategy ?? 'first', ...(t.level === 3 ? {branch:t.branch ?? 'legacy'} : {}) })),
   };
@@ -42,6 +44,7 @@ export function restore(raw) {
     pads = new Set();
   game.report = restoreReport(data.report,data.kills,getMap(data.map).maxKills);
   game.wave = data.wave;
+  game.waveHistory=restoreWaveHistory(data.waveHistory,data.wave,getMap(data.map).maxKills,game.report);
   game.health = data.health;
   game.credits = data.credits;
   game.kills = data.kills;

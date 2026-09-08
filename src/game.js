@@ -1,3 +1,4 @@
+import {beginWaveReport,finishWaveReport} from './wave-report.js';
 import {enemyTypeFor} from './waves.js';
 import {newReport,recordDamage} from './battle-report.js';
 import {getMap,pointOnMap} from './maps.js';
@@ -109,6 +110,8 @@ export class Game {
   get map(){return getMap(this.mapId);}
   reset() {
     this.report = newReport();
+    this.waveHistory = [];
+    this.activeWaveReport = null;
     this.phase = 'ready';
     this.paused = false;
     this.wave = 0;
@@ -163,6 +166,7 @@ export class Game {
     if (this.phase !== 'ready' || this.paused) return false;
     this.wave++;
     this.phase = 'wave';
+    this.activeWaveReport = beginWaveReport(this);
     this.spawnLeft = this.map.waves[this.wave-1];
     this.spawnIndex = 0;
     this.spawnTimer = 0.3;
@@ -182,6 +186,7 @@ export class Game {
     if (Math.hypot(this.map.pads[pad][0] - this.player.x, this.map.pads[pad][1] - this.player.z) < 1.5) return false;
     if (this.credits < def.cost) return false;
     this.credits -= def.cost;
+    if(this.activeWaveReport)this.activeWaveReport.spent+=def.cost;
     const t = {
       id: ++this.id,
       pad,
@@ -220,6 +225,7 @@ export class Game {
     const cost = this.upgradeCost(t);
     if (this.credits < cost) return false;
     this.credits -= cost;
+    if(this.activeWaveReport)this.activeWaveReport.spent+=cost;
     t.spent += cost;
     t.level++;
     if (t.level === 3) t.branch = branch;
@@ -230,6 +236,7 @@ export class Game {
     const t = this.towers.find((t) => t.id === id);
     if (!t || this.paused || ['won', 'lost'].includes(this.phase)) return false;
     this.credits += Math.floor((t.spent * 70) / 100);
+    if(this.activeWaveReport)this.activeWaveReport.refund+=Math.floor((t.spent*70)/100);
     this.towers = this.towers.filter((x) => x !== t);
     this.recalculateShield();
     this.emit('sell', { tower: t });
@@ -277,6 +284,7 @@ export class Game {
     if (enemy.hp <= 0) {
       this.kills++;
       this.credits += enemy.reward;
+      if(this.activeWaveReport)this.activeWaveReport.income+=enemy.reward;
       this.emit('kill', { enemy });
     }
   }
@@ -384,6 +392,7 @@ export class Game {
         const damage = { dasher:9,shielded:10,armored: 12, boss: 35, tank: 14, runner: 7, basic: 8 }[e.type];
         const absorbed = Math.min(this.shield,damage);
         this.report.breaches++;
+        if(this.activeWaveReport){const b=this.activeWaveReport.breachTypes;b[e.type]=(b[e.type]??0)+1;}
         this.report.shieldAbsorbed+=absorbed;
         this.report.coreDamage+=Math.min(this.health,damage-absorbed);
         this.shield -= absorbed;
@@ -393,6 +402,7 @@ export class Game {
     }
     if (this.health <= 0) {
       this.phase = 'lost';
+      finishWaveReport(this,'lost');
       this.emit('end', { won: false });
       return;
     }
@@ -422,13 +432,16 @@ export class Game {
       this.health = Math.min(100,this.health + this.repairBonus);
       if (this.wave === 10) {
         this.phase = 'won';
+        finishWaveReport(this,'cleared');
         this.emit('end', { won: true });
       } else {
         this.phase = 'ready';
         const bonus = 65 + this.wave * 10;
         this.credits += bonus;
+        if(this.activeWaveReport)this.activeWaveReport.income+=bonus;
         this.report.baseRepair+=Math.min(100-this.health,5);
         this.health = Math.min(100, this.health + 5);
+        finishWaveReport(this,'cleared');
         this.emit('clear', { bonus });
       }
     }
