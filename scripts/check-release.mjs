@@ -9,7 +9,7 @@ assert.equal(meta.version,JSON.parse(fs.readFileSync('package.json')).version);
 assert.ok(!sw.includes('__SW_META__')&&!sw.includes('__SW_ASSETS__'));
 assert.ok(html.includes('property="og:url" content="'+site.url+'"'));
 assert.ok(html.includes('property="og:image" content="'+new URL(site.image,site.url).href+'?v='));
-assert.ok(html.includes('阿凱老師')&&html.includes('nsn=16#a5'));
+assert.ok(html.includes('阿凱老師')&&html.includes('modules/school/index.php?department_id=2&zone_id=0&page_id=2&content_id=11&type=news&from_op=all_news#a5'));
 assert.ok(html.includes('maximum-scale=1')&&html.includes('user-scalable=no'));
 for(const p of ['favicon.svg','favicon.ico','apple-touch-icon.png','manifest.webmanifest',site.image])assert.ok(fs.statSync(root+'/'+p).size>0);
 for(const m of html.matchAll(/(?:src|href)="(\.\/assets\/[^"?]+)"/g))assert.ok(fs.existsSync(root+'/'+m[1]));
