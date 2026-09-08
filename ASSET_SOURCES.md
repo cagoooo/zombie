@@ -78,3 +78,6 @@
 - 四份 GLB 位於 `public/models/skins/`，合計 1,189,008 bytes；母檔位於 `assets-source/blender/skins/`。批次 Blender 腳本建立灰白裝甲、石墨結構與武器識別色，守衛保留皮膚及原骨架動畫；電漿槍以 Blender MCP 追加橘色發光修整並匯出。
 - 八項可選外觀（含原版）的詳細授權、尺寸、貼圖、面數與 SHA256 由 `src/skin-catalog.json` 記錄；下載／生成流程摘要同步於 `asset-manifest.json`。
 - 社群開發工具 [ahujasid/blender-mcp](https://github.com/ahujasid/blender-mcp) 為 MIT，安裝在使用者工具目錄，沒有把外掛原始碼或 Python 環境打包進網站；它不是本專案素材的來源授權。
+# v1.8.0 核心支援設施
+
+`public/models/support-pack/` 的護盾站、修復站為本專案原創程序幾何，使用原生 Blender MCP 建模／匯出，授權 CC0-1.0，無外部貼圖。來源腳本 `scripts/blender-build-support.py`；可編輯封存 `assets-source/blender/support-pack/`；SHA256 與大小見模型目錄 manifest.json。兩件合計 420 三角面、41,876 bytes。

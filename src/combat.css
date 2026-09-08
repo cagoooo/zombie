@@ -418,6 +418,8 @@
 .save-transfer button { min-height: 44px; margin: 4px 4px 4px 0; padding: 8px; background: #20301f; color: #edf4df; border: 1px solid #76855d; }
 #close-settings { min-height: 44px; }
 #emp { min-width: 64px; }
+#tower-branch { width:100%; min-height:44px; font-size:16px; background:#17221a; color:#edf4df; }
+.tower-detail button { min-height:44px; }
 html, body, #app, #update-card, #cosmetics-overlay { touch-action: manipulation; }
 html { -ms-touch-action: manipulation; }
 html.browser-zoomed, .browser-zoomed .battlefield, .browser-zoomed #game, .browser-zoomed .joystick { touch-action: manipulation !important; }

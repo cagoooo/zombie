@@ -1,0 +1,18 @@
+[
+  {
+    "name": "shield-station",
+    "bytes": 28724,
+    "triangles": 324,
+    "sha256": "6551c0bacc38c32f6998ca95951ff2e897c5a4e39636754709a30e7879075fd1",
+    "license": "CC0-1.0",
+    "scenes": 1
+  },
+  {
+    "name": "repair-station",
+    "bytes": 13152,
+    "triangles": 96,
+    "sha256": "5134c173a119741e52939c836551d835f011fb925e0bcb8427eb1a8bfe2e5653",
+    "license": "CC0-1.0",
+    "scenes": 1
+  }
+]

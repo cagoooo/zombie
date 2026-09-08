@@ -2,6 +2,8 @@ import { LoadingManager } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 export const ASSETS = [
+  ['shield-station','核心護盾站','glb','support-pack/shield-station'],
+  ['repair-station','核心修復站','glb','support-pack/repair-station'],
   ['arc-rifle', '電弧抑制槍', 'glb', 'arc-pack/arc-rifle'],
   ['arc-tower', '電弧干擾塔', 'glb', 'arc-pack/arc-tower'],
   ['armored-infected', '裝甲感染者', 'glb', 'arc-pack/armored-infected'],

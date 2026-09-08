@@ -37,7 +37,7 @@ test('每座塔獨立策略；切換不花能源也不重置射擊冷卻，暫�
 });
 
 test('四種塔三級預覽與實際傷害、冷卻一致', () => {
-  for (const type of Object.keys(TOWERS)) for (const level of [1,2,3]) {
+  for (const type of Object.keys(TOWERS).filter(type=>!TOWERS[type].support)) for (const level of [1,2,3]) {
     const g = new Game();g.build(0,type); const t=g.towers[0];t.level=level;
     const e={id:99,type:'basic',hp:10000,reward:0,distance:5,speed:0,slow:0,x:-20,z:-5};
     g.enemies=[e];g.phase='wave';g.spawnLeft=0;

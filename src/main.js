@@ -10,7 +10,7 @@ import { checkpoint, restore, SAVE_KEY } from './save.js';
 import { PATH, PADS } from './game.js';
 import { GameAudio } from './audio.js';
 import { Cosmetics } from './cosmetics.js';
-import { Game, WEAPONS, TOWERS, TARGET_STRATEGIES, towerStats } from './game.js';
+import { Game, WEAPONS, TOWERS, TARGET_STRATEGIES, BRANCHES, towerStats } from './game.js';
 import { Battlefield } from './scene.js';
 import { FixedStepper } from './timing.js';
 
@@ -105,7 +105,7 @@ function changeWeapon(type) {
   view.aimRing.material.color.setHex(WEAPONS[type].color);
   toast(`已切換：${WEAPONS[type].name}`);
 }
-function towerDetail() {
+function towerDetail(branchChoice = '') {
   const t = game.towers.find((t) => t.id === selectedTower);
   view.selectTower(t);
   if (!t) {
@@ -114,7 +114,12 @@ function towerDetail() {
     return;
   }
   const def = TOWERS[t.type], current = towerStats(t);
-  const next = t.level < 3 ? towerStats(t, t.level + 1) : null;
+  if (def.support) {
+    $('tower-detail').innerHTML = `<div class="detail-label">${def.name}</div><p>${t.type === 'shield' ? '提供 20 護盾，全場上限 40。清波補滿；戰鬥中新建需等清波充能。' : '每次清波額外修復 4 點核心，全場額外上限 8，核心最高 100%。'}不射擊、不可升級。</p><button id="sell">出售 ϟ ${Math.floor(t.spent*70/100)}</button>`;
+    $('sell').onclick=()=>{if(game.sell(t.id)){selectedTower=null;towerDetail();persistReady();}};
+    return;
+  }
+  const next = t.level < 3 ? towerStats(t, t.level + 1, branchChoice) : null;
   const format = (value, digits) => (Math.round((value + 1e-9) * 10 ** digits) / 10 ** digits).toFixed(digits);
   const row = (label, key, digits) => `<tr><th scope="row">${label}</th><td>${format(current[key], digits)}</td><td>${next ? format(next[key], digits) : '—'}</td></tr>`;
   $('tower-detail').innerHTML =
@@ -122,8 +127,9 @@ function towerDetail() {
     <label for="tower-strategy">目標策略</label>
     <select id="tower-strategy" aria-describedby="strategy-help">${Object.entries(TARGET_STRATEGIES).map(([key,label]) => `<option value="${key}" ${key === (t.strategy ?? 'first') ? 'selected' : ''}>${label}</option>`).join('')}</select>
     <p id="strategy-help">最前方：接近核心；最近：離塔最近；最強：目前生命值最高。只選射程內存活敵人，同分優先最前方。</p>
+    ${t.level === 2 ? `<label for="tower-branch">Lv.3 分支（選擇後按升級確認）</label><select id="tower-branch"><option value="">請選分支</option>${Object.entries(BRANCHES[t.type]).map(([key,b])=>`<option value="${key}" ${key===branchChoice?'selected':''}>${b.name}</option>`).join('')}</select>` : t.level === 3 ? `<p>分支：${BRANCHES[t.type]?.[t.branch]?.name ?? '舊版標準'}（已鎖定）</p>` : ''}
     <table class="upgrade-preview" aria-label="升級能力比較"><thead><tr><th>能力</th><th>Lv.${t.level}</th><th>${next ? `Lv.${t.level + 1}` : '最高級'}</th></tr></thead><tbody>${row('傷害', 'damage', 1)}${row('射程', 'range', 1)}${row('次／秒', 'rate', 2)}</tbody></table>
-    <p class="upgrade-note">數值四捨五入顯示；傷害為減傷前單次傷害。升級不改變爆破半徑或減速時間。</p>
+    <p class="upgrade-note">${t.level===2&&!branchChoice?'尚未選分支，表格為 Lv.3 標準基準。':'傷害為減傷前單次數值。'}<br>作用半徑 ${current.radius} → ${next?.radius ?? '—'}；減速秒數 ${current.slow} → ${next?.slow ?? '—'}；對裝甲倍率 ${current.armored} → ${next?.armored ?? '—'}。分支確認後不能免費更換。</p>
     <p id="upgrade-budget" aria-live="polite"></p>
     <button id="upgrade"></button><button id="sell">出售 ϟ ${Math.floor((t.spent * 70) / 100)}</button>`;
   $('tower-strategy').onchange = () => {
@@ -133,8 +139,9 @@ function towerDetail() {
     } else $('tower-strategy').value = t.strategy ?? 'first';
   };
   syncTowerActions();
+  if ($('tower-branch')) $('tower-branch').onchange=()=>{const value=$('tower-branch').value;towerDetail(value);$('tower-branch')?.focus();};
   $('upgrade').onclick = () => {
-    if (game.upgrade(t.id)) {
+    if (game.upgrade(t.id, $('tower-branch')?.value)) {
       toast('防禦塔升級完成');
       towerDetail();
     } else toast('能源不足或目前無法升級');
@@ -149,13 +156,15 @@ function towerDetail() {
 }
 function syncTowerActions() {
   const t = game.towers.find(t => t.id === selectedTower);
+  if (t && TOWERS[t.type].support) { if($('sell'))$('sell').disabled=game.paused||['won','lost'].includes(game.phase);return; }
   if (!t || !$('upgrade')) return;
   const locked = game.paused || ['won', 'lost'].includes(game.phase);
-  const key = `${t.id}/${t.level}/${game.credits}/${locked}`;
+  const key = `${t.id}/${t.level}/${game.credits}/${locked}/${$('tower-branch')?.value}`;
   if ($('upgrade').dataset.state === key) return;
   $('upgrade').dataset.state = key;
   const max = t.level >= 3, cost = game.upgradeCost(t), short = Math.max(0, cost - game.credits);
-  $('upgrade').disabled = locked || max || short > 0;
+  $('upgrade').disabled = locked || max || short > 0 || (t.level===2&&!$('tower-branch')?.value);
+  if($('tower-branch'))$('tower-branch').disabled=locked;
   $('upgrade').textContent = max ? '已達最高等級' : `升級 ϟ ${cost}`;
   $('upgrade-budget').textContent = max ? '已達 Lv.3，仍可調整策略或出售。' : `費用 ${cost} · 現有 ${game.credits} · ${short ? `尚缺 ${short}` : `升級後剩餘 ${game.credits - cost}`}`;
   $('sell').disabled = locked;
@@ -413,7 +422,8 @@ function updateUI() {
     game.phase
   ];
   $('phase-label').textContent = buildMode ? '建造模式' : status;
-  $('compact-hud').textContent = '◈ ' + game.health + '%  ϟ ' + game.credits;
+  $('compact-hud').textContent = '◈ ' + game.health + '%  ⛨ ' + game.shield + '/' + game.shieldMax + '  ϟ ' + game.credits;
+  $('shield-value').textContent = `護盾 ${game.shield}／${game.shieldMax} · 清波額外修復 ${game.repairBonus}`;
   $('compact-heat').textContent = (game.overheated ? '冷卻 ' : '熱 ') + Math.round(game.heat) + '%';
   document.body.classList.toggle('core-danger', game.health < 30);
   drawMinimap();
@@ -678,6 +688,7 @@ window.deadzone = {
     paused: game.paused,
     wave: game.wave,
     health: game.health,
+    shield: game.shield, shieldMax:game.shieldMax, repairBonus:game.repairBonus,
     credits: game.credits,
     kills: game.kills,
     weapon: game.weapon,

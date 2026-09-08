@@ -1,11 +1,20 @@
 import { canStand, rayStop } from './world.js';
 export const EMP = { radius: 8, damage: 45, slow: 2.5, cooldown: 45 };
 export const TARGET_STRATEGIES = { first: '最前方', nearest: '最近', strongest: '最強' };
-export function towerStats(t, level = t.level) {
+export const BRANCHES = {
+  pulse: { rapid: { name:'高速', cooldown:.7, damage:.8 }, heavy: { name:'重擊', damage:1.5, cooldown:1.3 } },
+  cryo: { lasting: { name:'長緩速', slow:3.5 }, wide: { name:'廣域', radius:2, damage:.8 } },
+  plasma: { blast: { name:'大爆破', radius:4, cooldown:1.15 }, reach: { name:'遠射程', range:4 } },
+  arc: { suppress: { name:'強抑制', slow:1.8, damage:.85 }, pierce: { name:'反裝甲', armored:1.8 } },
+};
+export function towerStats(t, level = t.level, branch = t.branch) {
   const def = TOWERS[t.type];
-  const cooldown = def.cooldown / (1 + (level - 1) * 0.12);
-  return { damage: def.damage * (1 + (level - 1) * 0.65),
-    range: def.range + (level - 1) * 1.2, cooldown, rate: 1 / cooldown };
+  if (def.support) return { damage:0,range:0,cooldown:0,rate:0,radius:0,slow:0,armored:1 };
+  const b = level === 3 ? BRANCHES[t.type]?.[branch] ?? {} : {};
+  const cooldown = def.cooldown / (1 + (level - 1) * 0.12) * (b.cooldown ?? 1);
+  return { damage: def.damage * (1 + (level - 1) * 0.65) * (b.damage ?? 1),
+    range: def.range + (level - 1) * 1.2 + (b.range ?? 0), cooldown, rate: 1 / cooldown,
+    radius:b.radius ?? def.radius, slow:b.slow ?? def.slow, armored:b.armored ?? 1 };
 }
 export function towerTarget(t, enemies) {
   const range = towerStats(t).range;
@@ -70,6 +79,8 @@ export const WEAPONS = {
   },
 };
 export const TOWERS = {
+ shield: { name:'核心護盾站',cost:180,support:true,color:0x69bcff },
+ repair: { name:'核心修復站',cost:200,support:true,color:0x73ed9b },
  arc: { name: '電弧干擾塔', cost: 150, damage: 18, cooldown: .85, range: 7.5, color: 0xb66aff, radius: 1.8, slow: .8, disrupt: true },
   pulse: {
     name: '脈衝哨塔',
@@ -127,6 +138,7 @@ export class Game {
     this.paused = false;
     this.wave = 0;
     this.health = 100;
+    this.shield = 0;
     this.credits = 300;
     this.kills = 0;
     this.enemies = [];
@@ -207,26 +219,35 @@ export class Game {
       z: PADS[pad][1],
     };
     this.towers.push(t);
+    this.recalculateShield(true);
     this.emit('build', { tower: t });
     return true;
   }
   upgradeCost(t) {
     return Math.round(TOWERS[t.type].cost * 0.7 * t.level);
   }
+  get shieldMax() { return Math.min(40,this.towers.filter(t=>t.type==='shield').length*20); }
+  get repairBonus() { return Math.min(8,this.towers.filter(t=>t.type==='repair').length*4); }
+  recalculateShield(fill = false) {
+    // Only deployment between waves charges newly built stations; combat rebuilding cannot refill.
+    this.shield = fill && this.phase === 'ready' ? this.shieldMax : Math.min(this.shield,this.shieldMax);
+  }
   setTowerStrategy(id, strategy) {
     const t = this.towers.find(t => t.id === id);
-    if (!t || !Object.hasOwn(TARGET_STRATEGIES, strategy) || this.paused || ['won', 'lost'].includes(this.phase)) return false;
+    if (!t || TOWERS[t.type].support || !Object.hasOwn(TARGET_STRATEGIES, strategy) || this.paused || ['won', 'lost'].includes(this.phase)) return false;
     t.strategy = strategy;
     return true;
   }
-  upgrade(id) {
+  upgrade(id, branch) {
     const t = this.towers.find((t) => t.id === id);
-    if (!t || t.level >= 3 || this.paused || ['won', 'lost'].includes(this.phase)) return false;
+    if (!t || TOWERS[t.type].support || t.level >= 3 || this.paused || ['won', 'lost'].includes(this.phase)) return false;
+    if (t.level === 2 && !Object.hasOwn(BRANCHES[t.type],branch)) return false;
     const cost = this.upgradeCost(t);
     if (this.credits < cost) return false;
     this.credits -= cost;
     t.spent += cost;
     t.level++;
+    if (t.level === 3) t.branch = branch;
     this.emit('upgrade', { tower: t });
     return true;
   }
@@ -235,6 +256,7 @@ export class Game {
     if (!t || this.paused || ['won', 'lost'].includes(this.phase)) return false;
     this.credits += Math.floor((t.spent * 70) / 100);
     this.towers = this.towers.filter((x) => x !== t);
+    this.recalculateShield();
     this.emit('sell', { tower: t });
     return true;
   }
@@ -289,7 +311,7 @@ export class Game {
         (e === target ||
           (def.radius > 0 && Math.hypot(e.x - target.x, e.z - target.z) <= def.radius && rayStop(target,e,this.towers)>=.999))
       )
-        this.damage(e, def.damage * multiplier, def.slow, def.disrupt);
+        this.damage(e, def.damage * multiplier * (e.type === 'armored' ? def.armored ?? 1 : 1), def.slow, def.disrupt);
     }
   }
   fire(point, directional = false) {
@@ -366,10 +388,10 @@ export class Game {
       Object.assign(e, pathPoint(e.distance));
       if (e.distance >= PATH_LENGTH) {
         e.hp = 0;
-        this.health = Math.max(
-          0,
-          this.health - { armored: 12, boss: 35, tank: 14, runner: 7, basic: 8 }[e.type],
-        );
+        const damage = { armored: 12, boss: 35, tank: 14, runner: 7, basic: 8 }[e.type];
+        const absorbed = Math.min(this.shield,damage);
+        this.shield -= absorbed;
+        this.health = Math.max(0,this.health-damage+absorbed);
         this.emit('breach', { enemy: e });
       }
     }
@@ -379,13 +401,14 @@ export class Game {
       return;
     }
     for (const t of this.towers) {
+      if (TOWERS[t.type].support) continue;
       t.cooldown -= dt;
       if (t.cooldown > 0) continue;
       const def = TOWERS[t.type];
       const stats = towerStats(t);
       const target = towerTarget(t, this.enemies);
       if (target) {
-        this.hit(target, { ...def, damage: stats.damage });
+        this.hit(target, { ...def, ...stats });
         t.cooldown = stats.cooldown;
         this.emit('shot', {
           from: { x: t.x, z: t.z, y: 2.2 },
@@ -398,6 +421,8 @@ export class Game {
     }
     this.enemies = this.enemies.filter((e) => e.hp > 0);
     if (this.spawnLeft === 0 && this.enemies.length === 0) {
+      this.shield = this.shieldMax;
+      this.health = Math.min(100,this.health + this.repairBonus);
       if (this.wave === 10) {
         this.phase = 'won';
         this.emit('end', { won: true });

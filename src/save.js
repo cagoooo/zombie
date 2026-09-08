@@ -1,4 +1,4 @@
-import { Game, TOWERS, PADS, WEAPONS, TARGET_STRATEGIES } from './game.js';
+import { Game, TOWERS, PADS, WEAPONS, TARGET_STRATEGIES, BRANCHES } from './game.js';
 import { canStand } from './world.js';
 export const SAVE_KEY = 'deadzone-checkpoint-v1';
 export function checkpoint(game) {
@@ -8,12 +8,13 @@ export function checkpoint(game) {
     map: 'outpost-1',
     wave: game.wave,
     health: game.health,
+    shield: game.shield,
     credits: game.credits,
     kills: game.kills,
     weapon: game.weapon,
     empCooldown: game.empCooldown,
     player: { x: game.player.x, z: game.player.z, angle: game.player.angle },
-    towers: game.towers.map((t) => ({ pad: t.pad, type: t.type, level: t.level, spent: t.spent, strategy: t.strategy ?? 'first' })),
+    towers: game.towers.map((t) => ({ pad: t.pad, type: t.type, level: t.level, spent: t.spent, strategy: t.strategy ?? 'first', ...(t.level === 3 ? {branch:t.branch ?? 'legacy'} : {}) })),
   };
 }
 export function restore(raw) {
@@ -51,6 +52,8 @@ export function restore(raw) {
       (t.strategy !== undefined && !Object.hasOwn(TARGET_STRATEGIES, t.strategy))
     )
       throw Error('防禦塔存檔損毀');
+    if (TOWERS[t.type].support && t.level !== 1) throw Error('支援設施不可升級');
+    if (t.branch !== undefined && (t.level !== 3 || (t.branch !== 'legacy' && !Object.hasOwn(BRANCHES[t.type] ?? {},t.branch)))) throw Error('升級分支不相容');
     const cost = TOWERS[t.type].cost,
       spent =
         cost +
@@ -60,8 +63,10 @@ export function restore(raw) {
         );
     if (t.spent !== spent) throw Error('防禦塔投入數值不符');
     pads.add(t.pad);
-    game.towers.push({ ...t, strategy: t.strategy ?? 'first', id: ++game.id, cooldown: 0, x: PADS[t.pad][0], z: PADS[t.pad][1] });
+    game.towers.push({ ...t, ...(t.level === 3 ? {branch:t.branch ?? 'legacy'} : {}), strategy: t.strategy ?? 'first', id: ++game.id, cooldown: 0, x: PADS[t.pad][0], z: PADS[t.pad][1] });
   }
+  if (data.shield !== undefined && !integer(data.shield,0,game.shieldMax)) throw Error('護盾數值不合法');
+  game.shield = data.shield ?? game.shieldMax;
   if (
     !data.player ||
     !canStand(data.player.x, data.player.z, game.towers) ||

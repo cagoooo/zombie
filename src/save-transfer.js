@@ -28,7 +28,7 @@ export function setupSaveTransfer({ getGame, applyGame }) {
   }
   function preview(game) {
     pending = game;
-    $('import-summary').textContent = `能源前哨 · 第 ${game.wave + 1} 波準備 · 核心 ${game.health}% · 能源 ${game.credits} · ${game.towers.length} 座塔 · EMP 冷卻 ${Math.ceil(game.empCooldown)} 秒。`;
+    $('import-summary').textContent = `能源前哨 · 第 ${game.wave + 1} 波準備 · 核心 ${game.health}% · 護盾 ${game.shield}／${game.shieldMax} · 能源 ${game.credits} · ${game.towers.length} 座塔／設施 · EMP 冷卻 ${Math.ceil(game.empCooldown)} 秒。`;
     $('import-preview').hidden = false;
     status('尚未替換戰局。確認後會先備份目前部署；取消則保留現況。');
   }

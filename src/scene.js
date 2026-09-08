@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { AssetLibrary } from './assets.js';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { PATH, PADS, TOWERS, WEAPONS, towerStats } from './game.js';
+import { PATH, PADS, TOWERS, WEAPONS, BRANCHES, towerStats } from './game.js';
 
 const palette = {
   ground: 0x3b4935,
@@ -609,8 +609,8 @@ export class Battlefield {
       g = new THREE.Group();
     g.position.set(t.x, 0.4, t.z);
     this.scene.add(g);
-    if (t.type === 'arc') {
-      const asset = this.makeAsset('arc-tower', 2.2);
+    if (t.type === 'arc' || def.support) {
+      const asset = this.makeAsset(def.support ? `${t.type}-station` : 'arc-tower', 2.2);
       if (asset) {
         g.add(asset.root);
         const head = new THREE.Group();
@@ -620,6 +620,11 @@ export class Battlefield {
         this.padMeshes[t.pad].plus.visible = false;
         return;
       }
+    }
+    if(def.support) {
+      this.box(1.2,1.5,1.2,def.color,0,.75,0,g);
+      this.towerMeshes.set(t.id,{root:g,head:new THREE.Group()});
+      return;
     }
     this.cylinder(0.7, 0.35, 0x8a9875, 0, 0.2, 0, g);
     this.cylinder(0.42, 1.0, 0x35463b, 0, 0.8, 0, g);
@@ -657,7 +662,7 @@ export class Battlefield {
       this.rangeRing.visible = false;
       return;
     }
-    this.rangeRing.visible = true;
+    this.rangeRing.visible = !TOWERS[t.type].support;
     this.rangeRing.position.set(t.x, 0.2, t.z);
     const range = towerStats(t).range;
     this.rangeRing.scale.setScalar(range / 8);
@@ -913,6 +918,10 @@ export class Battlefield {
     for (const t of game.towers) {
       if (!this.towerMeshes.has(t.id)) this.addTower(t);
       this.towerMeshes.get(t.id).root.scale.setScalar(1 + (t.level - 1) * 0.12);
+      const mesh=this.towerMeshes.get(t.id);
+      if(t.branch && !mesh.branchMarker) {
+        mesh.branchMarker=this.box(.3,.3,.3,t.branch==='legacy'?0xffffff:Object.keys(BRANCHES[t.type]).indexOf(t.branch)===0?0x69e6ff:0xffdf67,0,2.5,0,mesh.root,true);
+      }
     }
     for (const [id, m] of this.towerMeshes) {
       if (!game.towers.some((t) => t.id === id)) {

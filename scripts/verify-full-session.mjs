@@ -1,6 +1,6 @@
 import { chromium } from '@playwright/test';
 import { OrthographicCamera, Vector3 } from 'three';
-import { PADS, TOWERS } from '../src/game.js';
+import { PADS, TOWERS, BRANCHES } from '../src/game.js';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 
@@ -70,8 +70,9 @@ try {
       while (true) {
         const s = await snapshot(),
           t = s.towers.find((x) => x.id === tower.id);
-        if (t.level >= 3 || s.credits < Math.round(TOWERS[t.type].cost * 0.7 * t.level)) break;
+        if (TOWERS[t.type].support || t.level >= 3 || s.credits < Math.round(TOWERS[t.type].cost * 0.7 * t.level)) break;
         await clickPad(t.pad);
+        if(t.level === 2) await page.locator('#tower-branch').selectOption(Object.keys(BRANCHES[t.type])[0]);
         await page.locator('#upgrade').click();
         assert.ok((await snapshot()).towers.find((x) => x.id === t.id).level > t.level);
       }
