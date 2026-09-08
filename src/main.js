@@ -13,6 +13,7 @@ import { Cosmetics } from './cosmetics.js';
 import { Game, WEAPONS, TOWERS, TARGET_STRATEGIES, BRANCHES, towerStats } from './game.js';
 import { Battlefield } from './scene.js';
 import { FixedStepper } from './timing.js';
+import { FrameMetrics } from './performance.js';
 
 const $ = (id) => document.getElementById(id),
   game = new Game(Object.hasOwn(MAPS,new URL(location.href).searchParams.get('map')) ? new URL(location.href).searchParams.get('map') : 'outpost-1');
@@ -505,9 +506,11 @@ function handleEvents() {
 let last = performance.now(),
   uiTime = 0;
 const stepper = new FixedStepper();
+const frameMetrics = new FrameMetrics();
 function frame(now) {
   const dt = Math.max(0, (now - last) / 1000);
   last = now;
+  frameMetrics.record(dt * 1000, !document.hidden && !game.paused && game.phase === 'wave');
   const advanced = stepper.advance(dt, { speed, paused: game.paused }, (step) => {
     input.update(game, step);
     if (game.player.moving) tutorial.mark('move');
@@ -677,6 +680,7 @@ loadAssets();
 // Read-only state snapshot for integration diagnostics; no gameplay mutation hooks.
 window.deadzone = {
   project: (x, z, y = 0) => view.project(x, z, y),
+  pickPad: (x, y) => view.pickPad(x, y),
   snapshot: () => ({
     map:game.mapId,
     sceneIntegrity:(()=>{const bad=[];view.scene.traverse(o=>{if((o.isMesh||o.isLine||o.isPoints)&&!o.geometry)bad.push({name:o.name,type:o.type});});return bad;})(),
@@ -686,6 +690,7 @@ window.deadzone = {
     quality: view.quality,
     batching: view.batching,
     memory: { ...view.renderer.info.memory },
+    performance: frameMetrics.snapshot(),
     effectResources: {
       active: view.effects.length,
       limit: view.effectLimit,

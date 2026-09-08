@@ -1,13 +1,13 @@
 import { chromium } from '@playwright/test';
-import { OrthographicCamera, Vector3 } from 'three';
-import { PADS, TOWERS, BRANCHES } from '../src/game.js';
+import { TOWERS, BRANCHES } from '../src/game.js';
+import { getMap } from '../src/maps.js';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 
 await fs.mkdir('artifacts', { recursive: true });
 const browser = await chromium.launch({
-  channel: 'msedge',
-  headless: true,
+  channel: 'chrome',
+  headless: process.env.HEADLESS === '1',
   args: ['--enable-webgl', '--ignore-gpu-blocklist'],
 });
 const errors = [],
@@ -19,7 +19,12 @@ try {
   page.on('console', (m) => {
     if (m.type() === 'error') errors.push(m.text());
   });
-  await page.goto(process.env.GAME_URL || 'http://127.0.0.1:5173');
+  const url = new URL(process.env.GAME_URL || 'http://127.0.0.1:5173');
+  if(process.env.GAME_MAP) url.searchParams.set('map', process.env.GAME_MAP);
+  const map = getMap(url.searchParams.get('map') || 'outpost-1');
+  const support = process.env.SUPPORT_TYPE || 'repair';
+  assert.ok(['shield', 'repair'].includes(support), 'SUPPORT_TYPE must be shield or repair');
+  await page.goto(url.href);
   await page.waitForSelector('body[data-ready="true"]');
   await page.locator('#tutorial-skip').click();
   await page.locator('#open-cosmetics').click();
@@ -41,7 +46,7 @@ try {
   async function clickPad(pad) {
     if (!(await snapshot()).buildMode) await page.locator('#build-mode').click();
     await page.clock.runFor(650);
-    const p = await point(...PADS[pad]);
+    const p = await point(...map.pads[pad]);
     await page.mouse.click(p.x, p.y);
   }
   const plan = [
@@ -51,7 +56,7 @@ try {
     [4, process.env.TOWER_STRATEGY_TEST ? 'arc' : 'pulse'],
     [3, 'plasma'],
     [5, 'pulse'],
-    [2, 'pulse'],
+    [2, support],
     [6, 'plasma'],
   ];
   async function deploy() {
@@ -61,7 +66,7 @@ try {
         await page.locator(`[data-tower="${type}"]`).click();
         await clickPad(pad);
         assert.ok((await snapshot()).towers.some((t) => t.pad === pad));
-        if (process.env.TOWER_STRATEGY_TEST) {
+        if (process.env.TOWER_STRATEGY_TEST && !TOWERS[type].support) {
           await page.locator('#tower-strategy').selectOption(type === 'cryo' ? 'nearest' : type === 'arc' ? 'strongest' : 'first');
         }
       }
@@ -155,7 +160,9 @@ try {
   assert.deepEqual(errors, []);
   const report = {
     date: new Date().toISOString(),
-    browser: 'Microsoft Edge headless',
+    browser: `Google Chrome ${process.env.HEADLESS === '1' ? 'headless' : 'visible'}`,
+    map: map.id,
+    support,
     configuration: process.env.TOWER_STRATEGY_TEST ? '四塔混合；冰凍最近、電弧最強、其餘最前方' : '原配置；最前方',
     viewport: '1440x980',
     method:
@@ -172,7 +179,7 @@ try {
     resourcesAfterLoss: { memory: restarted.memory, effects: restarted.effectResources },
     errors,
   };
-  await fs.writeFile('artifacts/full-session-report.json', JSON.stringify(report, null, 2));
+  await fs.writeFile(`artifacts/full-session-${map.id}-${support}.json`, JSON.stringify(report, null, 2));
   console.log(JSON.stringify(report, null, 2));
 } catch (error) {
   if (page) {

@@ -626,7 +626,9 @@ export class Battlefield {
     head.position.y = 1.35;
     g.add(head);
     if (t.type === 'cryo') {
-      const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.65), this.mat(def.color, true));
+      const key = 'cryo-crystal-0.65';
+      if (!this.geometries.has(key)) this.geometries.set(key, new THREE.OctahedronGeometry(0.65));
+      const crystal = new THREE.Mesh(this.geometries.get(key), this.mat(def.color, true));
       crystal.position.y = 0.25;
       head.add(crystal);
       this.box(1.4, 0.15, 0.5, 0x748c7f, 0, -0.2, 0, head);
