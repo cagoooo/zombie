@@ -1,3 +1,4 @@
+import {restoreReport} from './battle-report.js';
 import { Game, TOWERS, PADS, WEAPONS, TARGET_STRATEGIES, BRANCHES } from './game.js';
 import { canStand } from './world.js';
 import {MAPS,getMap} from './maps.js';
@@ -15,6 +16,7 @@ export function checkpoint(game) {
     kills: game.kills,
     weapon: game.weapon,
     empCooldown: game.empCooldown,
+    report: structuredClone(game.report),
     player: { x: game.player.x, z: game.player.z, angle: game.player.angle },
     towers: game.towers.map((t) => ({ pad: t.pad, type: t.type, level: t.level, spent: t.spent, strategy: t.strategy ?? 'first', ...(t.level === 3 ? {branch:t.branch ?? 'legacy'} : {}) })),
   };
@@ -38,6 +40,7 @@ export function restore(raw) {
     throw Error('存檔版本或內容不相容');
   const game = new Game(data.map),
     pads = new Set();
+  game.report = restoreReport(data.report,data.kills,getMap(data.map).maxKills);
   game.wave = data.wave;
   game.health = data.health;
   game.credits = data.credits;

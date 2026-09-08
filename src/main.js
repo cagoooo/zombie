@@ -1,3 +1,6 @@
+import {installPagePause} from './lifecycle.js';
+import {updateBattleInfo,renderBattleReport} from './battle-ui.js';
+import './battle-info.css';
 import { setupSaveTransfer } from './save-transfer.js';
 import { startUpdates } from './pwa.js';
 import './style.css';
@@ -201,6 +204,7 @@ function modal(mode) {
       '重新部署 ↗',
     ],
   }[mode];
+  renderBattleReport(game,['won','lost','pause'].includes(mode));
   ['dialog-eyebrow', 'dialog-title', 'dialog-body', 'resume'].forEach(
     (id, i) => ($(id).textContent = content[i]),
   );
@@ -361,12 +365,10 @@ canvas.addEventListener('lostpointercapture', () => (shooting = false));
 canvas.addEventListener('pointerleave', () => {
   if (!shooting) view.aimRing.visible = false;
 });
-window.addEventListener('blur', () => {
-  shooting = false;
-  if (game.phase === 'wave' && !game.paused) modal('pause');
-});
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden && game.phase === 'wave' && !game.paused) modal('pause');
+installPagePause(window,document,{
+  clearInput:()=>{shooting=false;input.clear();},
+  shouldPause:()=>game.phase==='wave'&&!game.paused,
+  pause:()=>modal('pause'),
 });
 window.addEventListener('keydown', (e) => {
   if (!$('cosmetics-overlay').hidden) return;
@@ -416,6 +418,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Escape' && game.paused && !['won', 'lost'].includes(game.phase)) resume();
 });
 function updateUI() {
+  updateBattleInfo(game);
   const boss=game.enemies.find(e=>e.type==='boss'&&e.hp>0);
   $('boss-status').textContent=boss?`${game.map.newEnemies&&game.wave===10?'裂核者':'巨型感染者'} ${Math.ceil(boss.hp)} HP${boss.phaseTwo?' · 第二階段':''}`:'';
   const empLabel = game.empCooldown > 0 ? `EMP ${Math.ceil(game.empCooldown)}s` : 'EMP E';
@@ -683,6 +686,7 @@ window.deadzone = {
   pickPad: (x, y) => view.pickPad(x, y),
   snapshot: () => ({
     map:game.mapId,
+    report:structuredClone(game.report),
     sceneIntegrity:(()=>{const bad=[];view.scene.traverse(o=>{if((o.isMesh||o.isLine||o.isPoints)&&!o.geometry)bad.push({name:o.name,type:o.type});});return bad;})(),
     player: { ...game.player },
     buildMode,

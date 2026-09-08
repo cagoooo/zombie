@@ -169,7 +169,13 @@
               ><button id="continue-fallback" hidden>使用備援繼續</button>
             </div>
           </section>
+          <section id="boss-hud" hidden aria-label="Boss 戰況">
+            <div><strong id="boss-name"></strong><span id="boss-hp"></span></div>
+            <progress id="boss-health" value="0" max="1"></progress>
+            <span id="boss-stage" aria-live="polite"></span><span id="boss-countdown"></span>
+          </section>
           <div class="wave-action">
+            <details id="wave-intel"><summary id="intel-title">下一波情報</summary><div><p id="intel-counts"></p><p id="intel-tips"></p></div></details>
             <span id="wave-hint">先部署防禦塔，再迎接第一波敵人</span
             ><button id="next-wave" class="primary-button">開始第一波 <span>↗</span></button>
             <button id="open-cosmetics">裝備外觀</button>
@@ -186,6 +192,12 @@
               <span id="dialog-eyebrow" class="eyebrow">SYSTEM / PAUSED</span>
               <h2 id="dialog-title">戰場已暫停</h2>
               <p id="dialog-body"></p>
+              <section id="battle-report" hidden aria-label="本局戰況統計">
+                <h3>戰況統計</h3><p id="report-scope"></p><p id="report-summary"></p>
+                <table><thead><tr><th>來源</th><th>扣血</th><th>破盾</th><th>擊退</th></tr></thead><tbody id="report-rows"></tbody></table>
+                <p id="report-empty">尚無有效命中紀錄。</p>
+                <small>基座同塔型的重建合併計算，出售後保留貢獻。</small>
+              </section>
               <button id="resume" class="primary-button">繼續防守 ↗</button>
             </div>
           </div>

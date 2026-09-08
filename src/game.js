@@ -1,3 +1,5 @@
+import {enemyTypeFor} from './waves.js';
+import {newReport,recordDamage} from './battle-report.js';
 import {getMap,pointOnMap} from './maps.js';
 import { canStand, rayStop } from './world.js';
 export const EMP = { radius: 8, damage: 45, slow: 2.5, cooldown: 45 };
@@ -106,6 +108,7 @@ export class Game {
   }
   get map(){return getMap(this.mapId);}
   reset() {
+    this.report = newReport();
     this.phase = 'ready';
     this.paused = false;
     this.wave = 0;
@@ -239,16 +242,7 @@ export class Game {
   }
   spawn(override=null, distance=0, consume=true) {
     const i = this.spawnIndex++;
-    const type = override ?? (
-      this.wave % 5 === 0 && this.spawnLeft === 1
-        ? 'boss'
-        : this.map.newEnemies && this.wave >= 6 && i % 7 === 4 ? 'shielded'
-        : this.map.newEnemies && this.wave >= 3 && i % 6 === 0 ? 'dasher'
-        : this.wave >= 4 && i % 6 === 2 ? 'armored' : this.wave >= 3 && i % 5 === 3
-          ? 'tank'
-          : this.wave >= 2 && i % 3 === 1
-            ? 'runner'
-            : 'basic');
+    const type = override ?? enemyTypeFor(this.map,this.wave,i,this.spawnLeft);
     const factor = 1 + (this.wave - 1) * 0.19;
     const hp = { dasher:70, shielded:90, armored: 110, basic: 64, runner: 44, tank: 190, boss: 1000 }[type] * factor;
     const enemy = {
@@ -268,8 +262,9 @@ export class Game {
     if(consume)this.spawnLeft--;
     this.emit('spawn', { enemy });
   }
-  damage(enemy, amount, slow = 0, disrupt = false) {
+  damage(enemy, amount, slow = 0, disrupt = false, source = 'other') {
     if (enemy.hp <= 0) return;
+    const previousHP=enemy.hp, previousShield=enemy.shield||0;
     if(enemy.shield>0){
       const shieldDamage=amount*(disrupt?2:1),absorbed=Math.min(enemy.shield,shieldDamage);
       enemy.shield-=absorbed;amount=Math.max(0,amount-absorbed/(disrupt?2:1));
@@ -277,6 +272,7 @@ export class Game {
     amount *= enemy.type === 'armored' && !disrupt ? .6 : 1;
     enemy.hp -= amount;
     enemy.slow = Math.max(enemy.slow, slow);
+    recordDamage(this.report,source,Math.min(previousHP,Math.max(0,amount)),previousShield-(enemy.shield||0),enemy.hp<=0);
     this.emit('hit', { enemy, amount });
     if (enemy.hp <= 0) {
       this.kills++;
@@ -284,14 +280,14 @@ export class Game {
       this.emit('kill', { enemy });
     }
   }
-  hit(target, def, multiplier = 1) {
+  hit(target, def, multiplier = 1, source = 'other') {
     for (const e of this.enemies) {
       if (
         e.hp > 0 &&
         (e === target ||
           (def.radius > 0 && Math.hypot(e.x - target.x, e.z - target.z) <= def.radius && rayStop(target,e,this.towers,this.map)>=.999))
       )
-        this.damage(e, def.damage * multiplier * (e.type === 'armored' ? def.armored ?? 1 : 1), def.slow, def.disrupt);
+        this.damage(e, def.damage * multiplier * (e.type === 'armored' ? def.armored ?? 1 : 1), def.slow, def.disrupt, source);
     }
   }
   fire(point, directional = false) {
@@ -332,8 +328,8 @@ export class Game {
     if (target && def.pierce) {
       const victims=this.enemies.filter(e=>e.hp>0 && forward(e)>0 && forward(e)<=def.range && Math.abs((e.x-from.x)*dz-(e.z-from.z)*dx)<.9 && rayStop(from,e,this.towers,this.map)>=.999).sort((a,b)=>forward(a)-forward(b)).slice(0,2);
       beamTarget = victims.at(-1) || target;
-      victims.forEach((e,i)=>this.damage(e,def.damage*(i===0?1:.65)));
-    } else if (target) this.hit(target, def);
+      victims.forEach((e,i)=>this.damage(e,def.damage*(i===0?1:.65),0,false,`weapon:${this.weapon}`));
+    } else if (target) this.hit(target, def,1,`weapon:${this.weapon}`);
     this.emit('shot', {
       from,
       to: beamTarget
@@ -349,7 +345,7 @@ export class Game {
     const targets = this.enemies.filter(e => e.hp > 0 && Math.hypot(e.x - this.player.x, e.z - this.player.z) <= EMP.radius);
     if (!targets.length) return false;
     this.empCooldown = EMP.cooldown;
-    for (const e of targets) this.damage(e, EMP.damage * (e.type === 'boss' ? .5 : 1), e.type === 'boss' ? .8 : EMP.slow, true);
+    for (const e of targets) this.damage(e, EMP.damage * (e.type === 'boss' ? .5 : 1), e.type === 'boss' ? .8 : EMP.slow, true,'skill:emp');
     this.emit('emp', { x: this.player.x, z: this.player.z, radius: EMP.radius, count: targets.length });
     return true;
   }
@@ -387,6 +383,9 @@ export class Game {
         e.hp = 0;
         const damage = { dasher:9,shielded:10,armored: 12, boss: 35, tank: 14, runner: 7, basic: 8 }[e.type];
         const absorbed = Math.min(this.shield,damage);
+        this.report.breaches++;
+        this.report.shieldAbsorbed+=absorbed;
+        this.report.coreDamage+=Math.min(this.health,damage-absorbed);
         this.shield -= absorbed;
         this.health = Math.max(0,this.health-damage+absorbed);
         this.emit('breach', { enemy: e });
@@ -405,7 +404,7 @@ export class Game {
       const stats = towerStats(t);
       const target = towerTarget(t, this.enemies);
       if (target) {
-        this.hit(target, { ...def, ...stats });
+        this.hit(target, { ...def, ...stats },1,`tower:${t.pad}:${t.type}`);
         t.cooldown = stats.cooldown;
         this.emit('shot', {
           from: { x: t.x, z: t.z, y: 2.2 },
@@ -419,6 +418,7 @@ export class Game {
     this.enemies = this.enemies.filter((e) => e.hp > 0);
     if (this.spawnLeft === 0 && this.enemies.length === 0) {
       this.shield = this.shieldMax;
+      this.report.supportRepair+=Math.min(100-this.health,this.repairBonus);
       this.health = Math.min(100,this.health + this.repairBonus);
       if (this.wave === 10) {
         this.phase = 'won';
@@ -427,6 +427,7 @@ export class Game {
         this.phase = 'ready';
         const bonus = 65 + this.wave * 10;
         this.credits += bonus;
+        this.report.baseRepair+=Math.min(100-this.health,5);
         this.health = Math.min(100, this.health + 5);
         this.emit('clear', { bonus });
       }
