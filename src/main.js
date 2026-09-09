@@ -1,4 +1,4 @@
-import {installPagePause} from './lifecycle.js';
+import {installPagePause,PAUSE_REASONS} from './lifecycle.js';
 import {updateBattleInfo,renderBattleReport} from './battle-ui.js';
 import './battle-info.css';
 import { setupSaveTransfer } from './save-transfer.js';
@@ -175,16 +175,19 @@ function syncTowerActions() {
   $('sell').disabled = locked;
   $('tower-strategy').disabled = locked;
 }
-function modal(mode) {
+let pauseReason='manual';
+function modal(mode,reason='manual') {
   shooting = false;
   input.clear();
   dialogMode = mode;
+  pauseReason=reason;
   game.paused = true;
   sound.setPaused(true);
   $('overlay').hidden = false;
   $('pause').textContent = '▶ 繼續';
   const content = {
-    pause: ['SYSTEM / PAUSED', '戰場已暫停', '喘口氣，想好下一步再繼續。', '繼續防守 ↗'],
+    pause: ['SYSTEM / PAUSED', '戰場已暫停', PAUSE_REASONS[reason]??PAUSE_REASONS.manual, '繼續防守 ↗'],
+    report: ['WAVE / REPORT', `第 ${game.waveHistory.at(-1)?.wave} 波戰報`, '檢查上一波表現，再決定下一次部署。', '返回部署 ↗'],
     help: [
       'FIELD MANUAL / 01',
       '指揮官，準備就緒。',
@@ -204,7 +207,9 @@ function modal(mode) {
       '重新部署 ↗',
     ],
   }[mode];
-  renderBattleReport(game,['won','lost','pause'].includes(mode));
+  $('report-details').open=false;
+  renderBattleReport(game,['won','lost','pause','report'].includes(mode),mode==='report'?String(game.waveHistory.at(-1)?.wave):'all');
+  $('overlay').querySelector('.dialog').scrollTop=0;
   ['dialog-eyebrow', 'dialog-title', 'dialog-body', 'resume'].forEach(
     (id, i) => ($(id).textContent = content[i]),
   );
@@ -229,6 +234,9 @@ function resume() {
   $('pause').textContent = 'Ⅱ 暫停';
 }
 $('resume').onclick = resume;
+$('last-wave-report').onclick=()=>{
+ if(game.phase==='ready'&&!game.paused&&game.waveHistory.length&&$('loading-panel').hidden&&$('checkpoint-panel').hidden&&$('settings-overlay').hidden)modal('report');
+};
 $('emp').onclick = () => { if (!game.useEMP()) toast('EMP 範圍內沒有敵人，或目前無法使用'); };
 $('help').onclick = () => {
   if (!$('loading-panel').hidden || !$('settings-overlay').hidden || !$('checkpoint-panel').hidden)
@@ -368,7 +376,12 @@ canvas.addEventListener('pointerleave', () => {
 installPagePause(window,document,{
   clearInput:()=>{shooting=false;input.clear();},
   shouldPause:()=>game.phase==='wave'&&!game.paused,
-  pause:()=>modal('pause'),
+  pause:reason=>modal('pause',reason),
+  updateReason:reason=>{
+    if(dialogMode==='pause'&&game.paused&&pauseReason==='blur'&&['hidden','pagehide'].includes(reason)){
+      pauseReason=reason;$('dialog-body').textContent=PAUSE_REASONS[reason];
+    }
+  },
 });
 window.addEventListener('keydown', (e) => {
   if (!$('cosmetics-overlay').hidden) return;
@@ -453,6 +466,7 @@ function updateUI() {
       ? '注意熱量 · 建議間歇射擊'
       : '能量充足 · 隨時開火';
   $('next-wave').parentElement.hidden = game.phase !== 'ready';
+  $('last-wave-report').hidden=game.phase!=='ready'||!game.waveHistory.length;
   $('next-wave').innerHTML =
     game.wave === 0 ? '開始第一波 <span>↗</span>' : `開始第 ${game.wave + 1} 波 <span>↗</span>`;
   $('wave-hint').textContent =

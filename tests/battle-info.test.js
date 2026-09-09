@@ -7,6 +7,18 @@ import {checkpoint,restore} from '../src/save.js';
 import {installPagePause} from '../src/lifecycle.js';
 import {FixedStepper} from '../src/timing.js';
 
+test('自動暫停辨識失焦、背景與離頁；已暫停只通知原因、不重啟暫停流程',()=>{
+ const win=new EventTarget(),doc=new EventTarget();doc.hidden=false;
+ let paused=false;const starts=[],updates=[];
+ const dispose=installPagePause(win,doc,{clearInput:()=>{},shouldPause:()=>!paused,pause:r=>{paused=true;starts.push(r)},updateReason:r=>updates.push(r)});
+ win.dispatchEvent(new Event('blur'));assert.deepEqual(starts,['blur']);
+ doc.hidden=true;doc.dispatchEvent(new Event('visibilitychange'));assert.deepEqual(updates,['hidden']);
+ win.dispatchEvent(new Event('pagehide'));assert.deepEqual(updates,['hidden','pagehide']);
+ paused=false;win.dispatchEvent(new Event('blur'));assert.deepEqual(starts,['blur','hidden']);
+ doc.hidden=false;doc.dispatchEvent(new Event('visibilitychange'));assert.equal(paused,true);
+ dispose();win.dispatchEvent(new Event('blur'));assert.equal(starts.length,2);
+});
+
 test('兩圖二十波情報逐一符合實際出生，Boss 援軍獨立標示',()=>{
  for(const map of Object.values(MAPS))for(let wave=1;wave<=10;wave++){
   const g=new Game(map.id);g.wave=wave;g.spawnLeft=map.waves[wave-1];const counts={};

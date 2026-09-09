@@ -178,6 +178,7 @@
             <details id="wave-intel"><summary id="intel-title">下一波情報</summary><div><p id="intel-counts"></p><p id="intel-tips"></p></div></details>
             <span id="wave-hint">先部署防禦塔，再迎接第一波敵人</span
             ><button id="next-wave" class="primary-button">開始第一波 <span>↗</span></button>
+            <button id="last-wave-report" hidden>查看上一波戰報 ↗</button>
             <button id="open-cosmetics">裝備外觀</button>
           </div>
           <div class="field-bottom">
@@ -195,12 +196,16 @@
               <section id="battle-report" hidden aria-label="本局戰況統計">
                 <label for="report-wave">查看戰報</label>
                 <select id="report-wave"><option value="all">本局累計</option></select>
-                <p id="report-economy"></p>
+                <p id="report-scope"></p>
+                <dl id="report-highlights"><div><dt>漏怪</dt><dd id="report-leaks">0</dd></div><div><dt>核心損失</dt><dd id="report-core">0</dd></div><div><dt>戰中淨收支</dt><dd id="report-net">—</dd></div></dl>
+                <p id="report-net-scope"></p>
                 <h3>戰術建議</h3><ul id="report-advice"></ul>
-                <h3>戰況統計</h3><p id="report-scope"></p><p id="report-summary"></p>
+                <details id="report-details"><summary>查看火力來源與收支明細</summary>
+                <p id="report-economy"></p><p id="report-summary"></p>
                 <table><thead><tr><th>來源</th><th>扣血</th><th>破盾</th><th>擊退</th></tr></thead><tbody id="report-rows"></tbody></table>
                 <p id="report-empty">尚無有效命中紀錄。</p>
                 <small>基座同塔型的重建合併計算，出售後保留貢獻。</small>
+                </details>
               </section>
               <button id="resume" class="primary-button">繼續防守 ↗</button>
             </div>

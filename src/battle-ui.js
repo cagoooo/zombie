@@ -73,6 +73,12 @@ export function renderBattleReport(game, visible, selected = 'all') {
   const chosen = rows.find((r) => String(r.wave) === select.value);
   const r = chosen?.stats ?? game.report,
     fmt = (n) => n.toLocaleString('zh-TW', { maximumFractionDigits: 1 });
+  const displayed=chosen?[chosen]:rows;
+  const net=displayed.reduce((sum,row)=>sum+row.income+row.refund-row.spent,0);
+  $('report-leaks').textContent=String(r.breaches);
+  $('report-core').textContent=fmt(r.coreDamage);
+  $('report-net').textContent=displayed.length?`${net>0?'+':''}${fmt(net)}`:'—';
+  $('report-net-scope').textContent=chosen?'本波收入＋退款−戰中支出；不含開波前部署。':`淨收支僅含已記錄的 ${rows.length} 波，不含各波開波前部署；舊檔缺失資料不補推算。`;
   $('report-economy').textContent = chosen
     ? `開波能源 ${chosen.startCredits} ＋ 收入 ${chosen.income} ＋ 出售退款 ${chosen.refund} − 戰中支出 ${chosen.spent} ＝ ${chosen.status === 'active' ? '目前' : '結束'}能源 ${chosen.endCredits}。收入含擊退與清波獎勵；開波前部署不列入戰中支出。`
     : `已記錄 ${rows.length} 波逐波資料。舊存檔未記錄的波次不補推算；可在上方選擇波次。`;
