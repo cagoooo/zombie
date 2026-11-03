@@ -109,3 +109,18 @@ MK2 已有 .blend、生成腳本與遊戲 GLB。角色採 Idle_Gun／Walk_Gun／
 ## v1.2.0 分享與版本更新
 
 favicon／OG、GitHub Pages、SW 更新提示與 chunk 一次性恢復、手機平板 RWD 及阿凱老師頁尾已加入。詳見 [部署與版本更新](部署與版本更新.md)。正式版本更新由 GitHub Actions 自動同步 APP／SW／version.json，玩家確認後重載；可以先完成當波。
+
+<!-- akai-edu-tools:backlink -->
+
+---
+
+## 🔗 阿凱老師教育工具集
+
+這個專案是[阿凱老師教育工具集](https://cagoooo.github.io/Akai/)的 **#126 DEADZONE 能量防線：3D 塔防射擊**，由桃園市龍潭區石門國民小學阿凱老師開發。
+
+- 工具介紹頁：[https://cagoooo.github.io/Akai/tool/126/](https://cagoooo.github.io/Akai/tool/126/)
+- 線上使用：[https://cagoooo.github.io/zombie/](https://cagoooo.github.io/zombie/)
+- 教學情境文章：[https://cagoooo.github.io/Akai/blog/deadzone-126-3d-tower-defense-energy-weapons/](https://cagoooo.github.io/Akai/blog/deadzone-126-3d-tower-defense-energy-weapons/)
+- 全部工具（上百個教育工具與原始碼）：[https://cagoooo.github.io/Akai/](https://cagoooo.github.io/Akai/)
+
+想改造成自己的版本？到上面的教學情境文章，按左下角「複製 AI 開發提示詞」，貼給 ChatGPT、Claude、Gemini 等 AI 助手，就能參考這份原始碼開始規劃。
